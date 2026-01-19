@@ -1,0 +1,31 @@
+conda install fastapi uvicorn sqlalchemy python-jose passlib python-multipart pydantic python-dotenv
+
+conda install -c conda-forge fastapi
+
+conda install -c conda-forge uvicorn
+
+conda install -c conda-forge sqlalchemy
+
+conda install -c conda-forge python-jose
+
+conda install -c conda-forge passlib
+
+conda install -c conda-forge python-multipart
+
+conda install -c conda-forge pydantic
+
+conda install -c conda-forge python-dotenv
+
+
+alias pip=/Users/joshuarandoms/opt/anaconda3/envs/cr311/bin/pip
+
+pip install fastapi
+pip install uvicorn
+pip install sqlalchemy
+pip install python-jose
+pip install passlib
+pip install python-multipart
+pip install pydantic
+pip install python-dotenv
+pip install pydantic_settings
+pip install pydantic[email]
