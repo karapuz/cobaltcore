@@ -46,6 +46,8 @@ async def health_check():
 async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     
+    # import pdb; pdb.set_trace()
+
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email.lower()).first()
     if existing_user:
@@ -172,4 +174,9 @@ if __name__ == "__main__":
 
 """
 uvicorn app.main:app --reload --port 8000
+
+uvicorn app:main --reload --port 8000
+
+curl http://localhost:8000/api/health
+
 """
