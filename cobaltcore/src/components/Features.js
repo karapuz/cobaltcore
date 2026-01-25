@@ -23,16 +23,16 @@ export default function Features() {
       title: 'Understand market impact.',
       description: 'With our proprietary technology, research how credit rating can react to market conditions. Access comprehensive market and economics scenario database.'
     },
-    // {
-    //   icon: <TrendingUp className="w-10 h-10" />,
-    //   title: 'A recurring income stream',
-    //   description: 'Deals on our marketplace generally offer monthly income potential. These investments generate passive income throughout the lifetime of the deal.'
-    // },
-    // {
-    //   icon: <Shield className="w-10 h-10" />,
-    //   title: 'Expert support from professionals.',
-    //   description: 'Our knowledgeable Investor Relations team is available to answer your questions – just call or email us.'
-    // }
+    {
+      icon: <TrendingUp className="w-10 h-10" />,
+      title: 'A partner in business',
+      description: 'Compass Analytics is founded by professionals that understand this business well. We are welcome questions and eager to help your business florish.'
+    },
+    {
+      icon: <Shield className="w-10 h-10" />,
+      title: 'Expert support from professionals.',
+      description: 'Our knowledgeable Investor Relations team is there to offer hepl with getting things done – just call or email us.'
+    }
   ];
 
   return (

@@ -11,10 +11,10 @@ export default function Hero({ onSignUpClick }) {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-5xl mx-auto">
           <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
-            Private credit. <span className="italic">Simplified.</span>
+            Credit Ratings. <span className="italic">Modernized.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-4xl mx-auto">
-            Join investors to research and analyze credit ratings in Compass. Start your journey in private credit investing today.
+            Join investors to research and analyze credit ratings in Compass. <b>Start your journey in private credit investing today.</b> 
           </p>
           
           <div className="text-left max-w-2xl mx-auto mb-12 space-y-3">
