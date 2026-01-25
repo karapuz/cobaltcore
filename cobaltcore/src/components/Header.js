@@ -32,7 +32,7 @@ export default function Header() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
               <div className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                PERCENT
+                COMPASS
               </div>
             </div>
             

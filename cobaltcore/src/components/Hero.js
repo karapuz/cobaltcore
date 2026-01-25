@@ -2,8 +2,9 @@ import React from 'react';
 
 export default function Hero({ onSignUpClick }) {
   const stats = [
-    { label: 'Middle Market US Based Company', value: '$52T+' },
+    { label: 'Total Funded', value: '$2B+' },
     { label: 'Active Investors', value: '10,000+' },
+    { label: 'Average Return', value: '14.5%' }
   ];
 
   return (
@@ -11,16 +12,16 @@ export default function Hero({ onSignUpClick }) {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-5xl mx-auto">
           <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
-            Credit Ratings. <span className="italic">Modernized.</span>
+            Private credit. <span className="italic">Simplified.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-4xl mx-auto">
-            Join investors to research and analyze credit ratings in Compass. <b>Start your journey in private credit investing today.</b> 
+            Join thousands of investors who have funded over $2 billion in deals on Percent. Start your journey in private credit investing today.
           </p>
           
           <div className="text-left max-w-2xl mx-auto mb-12 space-y-3">
             <div className="flex items-start text-gray-700 text-lg">
               <span className="mr-3">•</span>
-              <span>Screen Credit Ratings for Deals and Companies.</span>
+              <span>Potential for up to 20% annualized returns.</span>
             </div>
             <div className="flex items-start text-gray-700 text-lg">
               <span className="mr-3">•</span>
@@ -28,13 +29,13 @@ export default function Hero({ onSignUpClick }) {
             </div>
             <div className="flex items-start text-gray-700 text-lg">
               <span className="mr-3">•</span>
-              <span>Custom made to fit your investment horizons</span>
+              <span>Timelines that fit your investment horizons with deals maturing from 6-36 months.</span>
             </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-10 max-w-2xl mx-auto">
             <p className="text-blue-900 font-semibold text-base">
-              New Customer Bonus: Public Companies' evalation free for first year on sign-up*
+              New Investor Bonus: Earn up to $500 after making your first investment*
             </p>
           </div>
 
