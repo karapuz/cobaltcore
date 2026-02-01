@@ -22,5 +22,5 @@ python app/tests/unittests/test_bcrypt.py
 curl -X POST http://localhost:8000/api/signup \
   -H "Content-Type: application/json" \
   -d '{"name":"Test User","email":"test@example.com","password":"testpass123"}'
-  
+
 """

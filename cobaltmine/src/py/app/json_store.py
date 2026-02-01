@@ -36,6 +36,7 @@ def get_credit_ratings(user_id: int) -> List[dict]:
     """
     with _lock:
         data = _read_file()
+        print("get_credit_ratings -> ", user_id)
         return data.get("users", {}).get(str(user_id), [])
 
 
