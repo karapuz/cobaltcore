@@ -1,74 +1,52 @@
 const API_URL = 'http://localhost:8000/api';
 
 class AuthService {
+  // ─────────────────────────────────────
+  // Auth methods
+  // ─────────────────────────────────────
+
   async signup(name, email, password) {
-    try {
-      const response = await fetch(`${API_URL}/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
+    const response = await fetch(`${API_URL}/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Signup failed');
 
-      if (!response.ok) {
-        throw new Error(data.detail || 'Signup failed');
-      }
-
-      // Store tokens
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
   }
 
   async login(email, password) {
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Login failed');
 
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login failed');
-      }
-
-      // Store tokens
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
   }
 
   async logout() {
     try {
       const token = this.getAccessToken();
-      
       await fetch(`${API_URL}/logout`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear local storage regardless of API call success
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
@@ -93,97 +71,151 @@ class AuthService {
   }
 
   async refreshToken() {
-    try {
-      const refresh_token = this.getRefreshToken();
-      
-      if (!refresh_token) {
-        throw new Error('No refresh token available');
-      }
+    const refresh_token = this.getRefreshToken();
+    if (!refresh_token) throw new Error('No refresh token available');
 
-      const response = await fetch(`${API_URL}/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token }),
-      });
+    const response = await fetch(`${API_URL}/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token }),
+    });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      localStorage.setItem('access_token', data.access_token);
-      
-      return data.access_token;
-    } catch (error) {
+    const data = await response.json();
+    if (!response.ok) {
       this.logout();
-      throw error;
+      throw new Error('Token refresh failed');
     }
+
+    localStorage.setItem('access_token', data.access_token);
+    return data.access_token;
   }
 
   async getUserProfile() {
-    try {
-      const token = this.getAccessToken();
-      
-      const response = await fetch(`${API_URL}/user`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    const token = this.getAccessToken();
+    const response = await fetch(`${API_URL}/user`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-      if (response.status === 401) {
-        // Try to refresh token
-        await this.refreshToken();
-        return this.getUserProfile(); // Retry
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to fetch user profile');
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
+    if (response.status === 401) {
+      await this.refreshToken();
+      return this.getUserProfile();
     }
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch user profile');
+    return data;
   }
 
   async updateProfile(name) {
-    try {
-      const token = this.getAccessToken();
-      
-      const response = await fetch(`${API_URL}/user/profile`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name }),
-      });
+    const token = this.getAccessToken();
+    const response = await fetch(`${API_URL}/user/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
 
-      if (response.status === 401) {
-        await this.refreshToken();
-        return this.updateProfile(name);
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to update profile');
-      }
-
-      // Update local storage
-      localStorage.setItem('user', JSON.stringify(data));
-
-      return data;
-    } catch (error) {
-      throw error;
+    if (response.status === 401) {
+      await this.refreshToken();
+      return this.updateProfile(name);
     }
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to update profile');
+    localStorage.setItem('user', JSON.stringify(data));
+    return data;
+  }
+
+  // ─────────────────────────────────────
+  // Portfolio / Credit Ratings methods
+  // ─────────────────────────────────────
+
+  /**
+   * Helper: makes an authenticated fetch call.
+   * Automatically refreshes token on 401 and retries once.
+   */
+  async _authFetch(url, options = {}, retried = false) {
+    const token = this.getAccessToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...(options.headers || {}),
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    // Auto-refresh on 401, retry once
+    if (response.status === 401 && !retried) {
+      await this.refreshToken();
+      return this._authFetch(url, options, true);
+    }
+
+    return response;
+  }
+
+  /**
+   * Fetches all credit ratings for the logged-in user.
+   * Returns { total, items }
+   */
+  async getPortfolio() {
+    const response = await this._authFetch(`${API_URL}/portfolio`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch portfolio');
+    return data;
+  }
+
+  /**
+   * Fetches a single credit rating by computation ID.
+   */
+  async getCreditRating(computationId) {
+    const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Credit rating not found');
+    return data;
+  }
+
+  /**
+   * Creates a new credit rating.
+   */
+  async addCreditRating(rating) {
+    const response = await this._authFetch(`${API_URL}/portfolio`, {
+      method: 'POST',
+      body: JSON.stringify(rating),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to add credit rating');
+    return data;
+  }
+
+  /**
+   * Updates an existing credit rating by computation ID.
+   */
+  async updateCreditRating(computationId, updatedFields) {
+    const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updatedFields),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to update credit rating');
+    return data;
+  }
+
+  /**
+   * Deletes a credit rating by computation ID.
+   */
+  async deleteCreditRating(computationId) {
+    const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to delete credit rating');
+    return data;
   }
 }
 
