@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Activity, CheckCircle, XCircle, Loader } from 'lucide-react';
 
-// Same demo data structure as Portfolio
+// Demo data
 const DEMO_SCENARIOS = [
   {
     id: 'CR-2024-001',
@@ -101,7 +101,7 @@ const DEMO_SCENARIOS = [
   }
 ];
 
-// Editable field definitions with validation rules
+// Editable field validation rules
 const EDITABLE_FIELDS = {
   revenue:          { min: 0,    max: null,  step: 1,    placeholder: '0' },
   ebitdaMargin:     { min: -100, max: 100,   step: 0.1,  placeholder: '0.0' },
@@ -124,25 +124,53 @@ function formatDate(dateStr) {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+// ─────────────────────────────────────
+// Shared sub-header
+// ─────────────────────────────────────
+function ScenariosHeader({ onBack, user }) {
+  return (
+    <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
+              <ArrowLeft className="w-5 h-5 mr-1" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-gray-700" />
+              <h1 className="text-lg font-bold text-gray-900">Scenarios</h1>
+            </div>
+          </div>
+          {user && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">
+                Welcome, <span className="font-semibold text-gray-800">{user.name}</span>
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────
+// Main Scenarios component
+// ─────────────────────────────────────
 export default function Scenarios({ user, onBack }) {
-  // Deep copy of demo data used as editable state
   const [rows, setRows] = useState(() => DEMO_SCENARIOS.map(r => ({ ...r })));
-  // Track which rows have been modified
   const [dirtyRows, setDirtyRows] = useState(new Set());
-  // Track which rows have been submitted: id -> 'submitting' | 'success' | 'error'
   const [submitStatus, setSubmitStatus] = useState({});
-  // Track validation errors: { rowId: { field: errorMsg } }
   const [errors, setErrors] = useState({});
-  // Active/focused cell
   const [activeCell, setActiveCell] = useState(null);
 
-  // Handle input change
   const handleChange = (rowId, field, value) => {
     setRows(prev =>
       prev.map(row => (row.id === rowId ? { ...row, [field]: value } : row))
     );
     setDirtyRows(prev => new Set(prev).add(rowId));
-    // Clear any existing error on this cell
     setErrors(prev => {
       const updated = { ...prev };
       if (updated[rowId]) {
@@ -151,7 +179,6 @@ export default function Scenarios({ user, onBack }) {
       }
       return updated;
     });
-    // Clear previous submit status for this row when editing again
     setSubmitStatus(prev => {
       const updated = { ...prev };
       delete updated[rowId];
@@ -159,7 +186,6 @@ export default function Scenarios({ user, onBack }) {
     });
   };
 
-  // Validate a single row
   const validateRow = (row) => {
     const rowErrors = {};
     Object.keys(EDITABLE_FIELDS).forEach(field => {
@@ -176,7 +202,6 @@ export default function Scenarios({ user, onBack }) {
     return rowErrors;
   };
 
-  // Handle submit for a single row
   const handleSubmit = async (rowId) => {
     const row = rows.find(r => r.id === rowId);
     const rowErrors = validateRow(row);
@@ -191,7 +216,6 @@ export default function Scenarios({ user, onBack }) {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Simulate success (swap to 'error' randomly for demo)
     const success = Math.random() > 0.2;
     setSubmitStatus(prev => ({ ...prev, [rowId]: success ? 'success' : 'error' }));
 
@@ -204,7 +228,6 @@ export default function Scenarios({ user, onBack }) {
     }
   };
 
-  // Reset a single row to original demo data
   const handleReset = (rowId) => {
     const original = DEMO_SCENARIOS.find(r => r.id === rowId);
     setRows(prev => prev.map(row => (row.id === rowId ? { ...original } : row)));
@@ -226,17 +249,17 @@ export default function Scenarios({ user, onBack }) {
   };
 
   const columns = [
-    { key: 'dateCreated', label: 'Date Created', editable: false },
-    { key: 'id', label: 'Computation ID', editable: false },
-    { key: 'revenue', label: 'Revenue', editable: true, suffix: '' },
-    { key: 'ebitdaMargin', label: 'EBITDA Margin %', editable: true, suffix: '%' },
-    { key: 'fcfToDebt', label: 'FCF / Total Debt', editable: true, suffix: '' },
-    { key: 'debtToEbitda', label: 'Total Debt / EBITDA', editable: true, suffix: 'x' },
-    { key: 'netDebtToEbitda', label: 'Net Debt / EBITDA', editable: true, suffix: 'x' },
-    { key: 'ebitdaToInterest', label: 'EBITDA / Interest', editable: true, suffix: 'x' },
-    { key: 'roce', label: 'ROCE %', editable: true, suffix: '%' },
-    { key: 'interestCoverage', label: 'Interest Coverage', editable: true, suffix: 'x' },
-    { key: 'submit', label: 'Submit', editable: false }
+    { key: 'dateCreated',      label: 'Date Created',        editable: false },
+    { key: 'id',               label: 'Computation ID',      editable: false },
+    { key: 'revenue',          label: 'Revenue',             editable: true,  suffix: '' },
+    { key: 'ebitdaMargin',     label: 'EBITDA Margin %',     editable: true,  suffix: '%' },
+    { key: 'fcfToDebt',        label: 'FCF / Total Debt',    editable: true,  suffix: '' },
+    { key: 'debtToEbitda',     label: 'Total Debt / EBITDA', editable: true,  suffix: 'x' },
+    { key: 'netDebtToEbitda',  label: 'Net Debt / EBITDA',   editable: true,  suffix: 'x' },
+    { key: 'ebitdaToInterest', label: 'EBITDA / Interest',   editable: true,  suffix: 'x' },
+    { key: 'roce',             label: 'ROCE %',              editable: true,  suffix: '%' },
+    { key: 'interestCoverage', label: 'Interest Coverage',   editable: true,  suffix: 'x' },
+    { key: 'submit',           label: 'Submit',              editable: false }
   ];
 
   const renderSubmitButton = (row) => {
@@ -260,10 +283,7 @@ export default function Scenarios({ user, onBack }) {
             <CheckCircle className="w-4 h-4" />
             <span className="text-xs font-semibold">Submitted</span>
           </div>
-          <button
-            onClick={() => handleReset(row.id)}
-            className="text-xs text-gray-500 hover:text-gray-700 underline"
-          >
+          <button onClick={() => handleReset(row.id)} className="text-xs text-gray-500 hover:text-gray-700 underline">
             Reset
           </button>
         </div>
@@ -277,10 +297,7 @@ export default function Scenarios({ user, onBack }) {
             <XCircle className="w-4 h-4" />
             <span className="text-xs font-semibold">Failed</span>
           </div>
-          <button
-            onClick={() => handleSubmit(row.id)}
-            className="text-xs text-blue-600 hover:text-blue-800 underline"
-          >
+          <button onClick={() => handleSubmit(row.id)} className="text-xs text-blue-600 hover:text-blue-800 underline">
             Retry
           </button>
         </div>
@@ -303,16 +320,14 @@ export default function Scenarios({ user, onBack }) {
   };
 
   const renderCell = (row, col) => {
-    // Read-only columns
     if (col.key === 'dateCreated') return <span className="text-gray-600 text-xs">{formatDate(row.dateCreated)}</span>;
-    if (col.key === 'id') return <span className="text-gray-800 text-xs font-mono">{row.id}</span>;
-    if (col.key === 'submit') return renderSubmitButton(row);
+    if (col.key === 'id')          return <span className="text-gray-800 text-xs font-mono">{row.id}</span>;
+    if (col.key === 'submit')      return renderSubmitButton(row);
 
-    // Editable columns
+    // Editable cell
     const rules = EDITABLE_FIELDS[col.key];
     const hasError = errors[row.id]?.[col.key];
     const isActive = activeCell?.rowId === row.id && activeCell?.field === col.key;
-    const isDirty = dirtyRows.has(row.id);
     const originalValue = DEMO_SCENARIOS.find(r => r.id === row.id)?.[col.key];
     const valueChanged = parseFloat(row[col.key]) !== originalValue;
 
@@ -340,9 +355,7 @@ export default function Scenarios({ user, onBack }) {
               }
             `}
           />
-          {col.suffix && (
-            <span className="ml-1 text-xs text-gray-400 whitespace-nowrap">{col.suffix}</span>
-          )}
+          {col.suffix && <span className="ml-1 text-xs text-gray-400 whitespace-nowrap">{col.suffix}</span>}
         </div>
         {hasError && (
           <span className="absolute -bottom-4 left-0 text-xs text-red-500 whitespace-nowrap z-10">
@@ -354,30 +367,8 @@ export default function Scenarios({ user, onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
-                <ArrowLeft className="w-5 h-5 mr-1" />
-                <span className="text-sm font-medium">Back</span>
-              </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-gray-700" />
-                <h1 className="text-lg font-bold text-gray-900">Scenarios</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">
-                Welcome, <span className="font-semibold text-gray-800">{user?.name}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50" style={{ paddingTop: '80px' }}>
+      <ScenariosHeader onBack={onBack} user={user} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Instructions */}
@@ -387,8 +378,8 @@ export default function Scenarios({ user, onBack }) {
             <div>
               <h3 className="text-sm font-semibold text-blue-900">How to use Scenarios</h3>
               <p className="text-sm text-blue-700 mt-1">
-                Edit any financial metric directly in the table below to run a credit rating scenario. 
-                Modified fields are highlighted in yellow. Click <strong>Submit</strong> on any row to publish 
+                Edit any financial metric directly in the table below to run a credit rating scenario.
+                Modified fields are highlighted in yellow. Click <strong>Submit</strong> on any row to publish
                 your scenario. Use <strong>Reset</strong> to revert a row back to its original values.
               </p>
             </div>

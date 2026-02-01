@@ -83,6 +83,38 @@ function SummaryCard({ title, value, trend, trendLabel }) {
 }
 
 // ─────────────────────────────────────
+// Shared sub-header used in all states
+// ─────────────────────────────────────
+function PortfolioHeader({ onBack, user }) {
+  return (
+    <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
+              <ArrowLeft className="w-5 h-5 mr-1" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-gray-700" />
+              <h1 className="text-lg font-bold text-gray-900">Portfolio</h1>
+            </div>
+          </div>
+          {user && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">
+                Welcome, <span className="font-semibold text-gray-800">{user.name}</span>
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────
 // Main Portfolio component
 // ─────────────────────────────────────
 export default function Portfolio({ user, onBack }) {
@@ -92,7 +124,6 @@ export default function Portfolio({ user, onBack }) {
   const [sortConfig, setSortConfig] = useState({ key: 'dateCreated', direction: 'desc' });
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // Fetch portfolio data from backend
   const fetchPortfolio = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -106,7 +137,6 @@ export default function Portfolio({ user, onBack }) {
     }
   }, []);
 
-  // Load on mount
   useEffect(() => {
     fetchPortfolio();
   }, [fetchPortfolio]);
@@ -133,38 +163,19 @@ export default function Portfolio({ user, onBack }) {
       : <span className="ml-1 text-gray-900">↓</span>;
   };
 
-  // Compute summary stats from loaded data
-  const totalRevenue       = data.reduce((s, d) => s + d.revenue, 0);
-  const avgEbitdaMargin    = data.length ? (data.reduce((s, d) => s + d.ebitdaMargin, 0) / data.length).toFixed(1) : '0';
-  const avgDebtToEbitda    = data.length ? (data.reduce((s, d) => s + d.debtToEbitda, 0) / data.length).toFixed(1) : '0';
-  const avgRoce            = data.length ? (data.reduce((s, d) => s + d.roce, 0) / data.length).toFixed(1) : '0';
+  // Summary stats
+  const totalRevenue    = data.reduce((s, d) => s + d.revenue, 0);
+  const avgEbitdaMargin = data.length ? (data.reduce((s, d) => s + d.ebitdaMargin, 0) / data.length).toFixed(1) : '0';
+  const avgDebtToEbitda = data.length ? (data.reduce((s, d) => s + d.debtToEbitda, 0) / data.length).toFixed(1) : '0';
+  const avgRoce         = data.length ? (data.reduce((s, d) => s + d.roce, 0) / data.length).toFixed(1) : '0';
 
   // ─────────────────────────────────────
   // Loading state
   // ─────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Keep top bar visible while loading */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
-                <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
-                  <ArrowLeft className="w-5 h-5 mr-1" />
-                  <span className="text-sm font-medium">Back</span>
-                </button>
-                <div className="h-6 w-px bg-gray-300"></div>
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-gray-700" />
-                  <h1 className="text-lg font-bold text-gray-900">Portfolio</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Centered loader */}
+      <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingTop: '80px' }}>
+        <PortfolioHeader onBack={onBack} user={user} />
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <Loader className="w-10 h-10 text-gray-400 animate-spin" />
           <p className="text-gray-500 text-sm">Loading portfolio data...</p>
@@ -178,26 +189,8 @@ export default function Portfolio({ user, onBack }) {
   // ─────────────────────────────────────
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
-                <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
-                  <ArrowLeft className="w-5 h-5 mr-1" />
-                  <span className="text-sm font-medium">Back</span>
-                </button>
-                <div className="h-6 w-px bg-gray-300"></div>
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-gray-700" />
-                  <h1 className="text-lg font-bold text-gray-900">Portfolio</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Error card */}
+      <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingTop: '80px' }}>
+        <PortfolioHeader onBack={onBack} user={user} />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="bg-white rounded-xl border border-red-200 shadow-sm p-8 max-w-md w-full text-center">
             <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -222,38 +215,16 @@ export default function Portfolio({ user, onBack }) {
   // Main render
   // ─────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <button onClick={onBack} className="flex items-center text-gray-600 hover:text-gray-900 transition">
-                <ArrowLeft className="w-5 h-5 mr-1" />
-                <span className="text-sm font-medium">Back</span>
-              </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-gray-700" />
-                <h1 className="text-lg font-bold text-gray-900">Portfolio</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">
-                Welcome, <span className="font-semibold text-gray-800">{user?.name}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50" style={{ paddingTop: '80px' }}>
+      <PortfolioHeader onBack={onBack} user={user} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <SummaryCard title="Total Revenue"      value={formatCurrency(totalRevenue)} trend="up"   trendLabel="+12.5% this quarter" />
-          <SummaryCard title="Avg EBITDA Margin"  value={`${avgEbitdaMargin}%`}        trend="up"   trendLabel="+2.3% vs last month" />
-          <SummaryCard title="Avg Debt / EBITDA"  value={`${avgDebtToEbitda}x`}        trend="down" trendLabel="-0.4x vs last month" />
-          <SummaryCard title="Avg ROCE"           value={`${avgRoce}%`}                trend="up"   trendLabel="+1.8% vs last month" />
+          <SummaryCard title="Total Revenue"     value={formatCurrency(totalRevenue)} trend="up"   trendLabel="+12.5% this quarter" />
+          <SummaryCard title="Avg EBITDA Margin" value={`${avgEbitdaMargin}%`}       trend="up"   trendLabel="+2.3% vs last month" />
+          <SummaryCard title="Avg Debt / EBITDA" value={`${avgDebtToEbitda}x`}       trend="down" trendLabel="-0.4x vs last month" />
+          <SummaryCard title="Avg ROCE"          value={`${avgRoce}%`}               trend="up"   trendLabel="+1.8% vs last month" />
         </div>
 
         {/* Table Header */}
@@ -308,7 +279,6 @@ export default function Portfolio({ user, onBack }) {
                   </tr>
                 ))}
 
-                {/* Empty state inside table */}
                 {sortedData.length === 0 && (
                   <tr>
                     <td colSpan={COLUMNS.length} className="px-4 py-12 text-center">
