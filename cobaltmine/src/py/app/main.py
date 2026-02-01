@@ -63,8 +63,9 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    # Seed demo credit ratings for the new user
-    json_store.seed_user_data(new_user.id)
+    # Seed demo data for new user in both portfolio and scenarios
+    json_store.seed_portfolio_data(new_user.id)
+    json_store.seed_scenarios_data(new_user.id)
 
     access_token = create_access_token(data={"sub": str(new_user.id)})
     refresh_token = create_refresh_token(data={"sub": str(new_user.id)})
@@ -131,16 +132,13 @@ async def logout(current_user: User = Depends(get_current_user)):
     return MessageResponse(message="Logout successful")
 
 # ─────────────────────────────────────
-# Credit Ratings endpoints
+# Portfolio endpoints (credit_ratings.json)
 # ─────────────────────────────────────
 @app.get("/api/portfolio")
 async def get_portfolio(current_user: User = Depends(get_current_user)):
     """Get all credit ratings for the current user"""
     ratings = json_store.get_credit_ratings(current_user.id)
-    return {
-        "total": len(ratings),
-        "items": ratings
-    }
+    return {"total": len(ratings), "items": ratings}
 
 @app.get("/api/portfolio/{computation_id}")
 async def get_credit_rating(
@@ -189,6 +187,39 @@ async def delete_credit_rating(
     return MessageResponse(message="Credit rating deleted successfully")
 
 # ─────────────────────────────────────
+# Scenarios endpoints (scenarios.json)
+# ─────────────────────────────────────
+@app.get("/api/scenarios")
+async def get_scenarios(current_user: User = Depends(get_current_user)):
+    """Get all scenarios for the current user"""
+    scenarios = json_store.get_scenarios(current_user.id)
+    return {"total": len(scenarios), "items": scenarios}
+
+@app.get("/api/scenarios/{computation_id}")
+async def get_scenario(
+    computation_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a single scenario by computation ID"""
+    scenario = json_store.get_scenario_by_id(current_user.id, computation_id)
+    if not scenario:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
+    return scenario
+
+@app.put("/api/scenarios/{computation_id}")
+async def update_scenario(
+    computation_id: str,
+    updated_fields: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Update an existing scenario (called on Submit)"""
+    updated = json_store.update_scenario(current_user.id, computation_id, updated_fields)
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
+    print("updated_fields ->", current_user, computation_id, updated_fields)
+    return updated
+
+# ─────────────────────────────────────
 # Error handlers
 # ─────────────────────────────────────
 @app.exception_handler(404)
@@ -202,7 +233,7 @@ async def internal_error_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
+        
 """
 uvicorn app.main:app --reload --port 8000
 

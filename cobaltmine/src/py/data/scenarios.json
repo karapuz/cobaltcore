@@ -1,0 +1,102 @@
+{
+    "users": {
+        "1": [
+            {
+                "id": "CR-2024-001",
+                "dateCreated": "2024-01-15",
+                "revenue": 45200000,
+                "ebitdaMargin": 23.5,
+                "fcfToDebt": 0.42,
+                "debtToEbitda": 3.2,
+                "netDebtToEbitda": 2.8,
+                "ebitdaToInterest": 4.5,
+                "roce": 18.3,
+                "interestCoverage": 1
+            },
+            {
+                "id": "CR-2024-002",
+                "dateCreated": "2024-02-20",
+                "revenue": 128000000,
+                "ebitdaMargin": 31.2,
+                "fcfToDebt": 0.68,
+                "debtToEbitda": 1.8,
+                "netDebtToEbitda": 1.5,
+                "ebitdaToInterest": 7.2,
+                "roce": 24.7,
+                "interestCoverage": 7.2
+            },
+            {
+                "id": "CR-2024-003",
+                "dateCreated": "2024-03-10",
+                "revenue": 8750000,
+                "ebitdaMargin": 15.8,
+                "fcfToDebt": 0.21,
+                "debtToEbitda": 5.1,
+                "netDebtToEbitda": 4.6,
+                "ebitdaToInterest": 2.8,
+                "roce": 9.1,
+                "interestCoverage": 2.8
+            },
+            {
+                "id": "CR-2024-004",
+                "dateCreated": "2024-04-05",
+                "revenue": 67300000,
+                "ebitdaMargin": 28.9,
+                "fcfToDebt": 0.55,
+                "debtToEbitda": 2.4,
+                "netDebtToEbitda": 2.1,
+                "ebitdaToInterest": 5.9,
+                "roce": 21.4,
+                "interestCoverage": 5.9
+            },
+            {
+                "id": "CR-2024-005",
+                "dateCreated": "2024-05-18",
+                "revenue": 3200000,
+                "ebitdaMargin": 10.2,
+                "fcfToDebt": 0.12,
+                "debtToEbitda": 7.3,
+                "netDebtToEbitda": 6.8,
+                "ebitdaToInterest": 1.5,
+                "roce": 4.2,
+                "interestCoverage": 1.5
+            },
+            {
+                "id": "CR-2024-006",
+                "dateCreated": "2024-06-22",
+                "revenue": 89500000,
+                "ebitdaMargin": 34.1,
+                "fcfToDebt": 0.78,
+                "debtToEbitda": 1.2,
+                "netDebtToEbitda": 0.9,
+                "ebitdaToInterest": 9.8,
+                "roce": 28.5,
+                "interestCoverage": 9.8
+            },
+            {
+                "id": "CR-2024-007",
+                "dateCreated": "2024-07-14",
+                "revenue": 22100000,
+                "ebitdaMargin": 19.4,
+                "fcfToDebt": 0.33,
+                "debtToEbitda": 4.0,
+                "netDebtToEbitda": 3.6,
+                "ebitdaToInterest": 3.5,
+                "roce": 13.8,
+                "interestCoverage": 3.5
+            },
+            {
+                "id": "CR-2024-008",
+                "dateCreated": "2024-08-30",
+                "revenue": 156000000,
+                "ebitdaMargin": 37.5,
+                "fcfToDebt": 0.85,
+                "debtToEbitda": 0.9,
+                "netDebtToEbitda": 0.6,
+                "ebitdaToInterest": 12.3,
+                "roce": 32.1,
+                "interestCoverage": 12.3
+            }
+        ]
+    }
+}

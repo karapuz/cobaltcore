@@ -133,13 +133,9 @@ class AuthService {
   }
 
   // ─────────────────────────────────────
-  // Portfolio / Credit Ratings methods
+  // Generic authenticated fetch helper
+  // Auto-refreshes token on 401, retries once
   // ─────────────────────────────────────
-
-  /**
-   * Helper: makes an authenticated fetch call.
-   * Automatically refreshes token on 401 and retries once.
-   */
   async _authFetch(url, options = {}, retried = false) {
     const token = this.getAccessToken();
     const headers = {
@@ -150,7 +146,6 @@ class AuthService {
 
     const response = await fetch(url, { ...options, headers });
 
-    // Auto-refresh on 401, retry once
     if (response.status === 401 && !retried) {
       await this.refreshToken();
       return this._authFetch(url, options, true);
@@ -159,10 +154,10 @@ class AuthService {
     return response;
   }
 
-  /**
-   * Fetches all credit ratings for the logged-in user.
-   * Returns { total, items }
-   */
+  // ─────────────────────────────────────
+  // Portfolio methods (credit_ratings.json)
+  // ─────────────────────────────────────
+
   async getPortfolio() {
     const response = await this._authFetch(`${API_URL}/portfolio`);
     const data = await response.json();
@@ -170,9 +165,6 @@ class AuthService {
     return data;
   }
 
-  /**
-   * Fetches a single credit rating by computation ID.
-   */
   async getCreditRating(computationId) {
     const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`);
     const data = await response.json();
@@ -180,9 +172,6 @@ class AuthService {
     return data;
   }
 
-  /**
-   * Creates a new credit rating.
-   */
   async addCreditRating(rating) {
     const response = await this._authFetch(`${API_URL}/portfolio`, {
       method: 'POST',
@@ -193,9 +182,6 @@ class AuthService {
     return data;
   }
 
-  /**
-   * Updates an existing credit rating by computation ID.
-   */
   async updateCreditRating(computationId, updatedFields) {
     const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`, {
       method: 'PUT',
@@ -206,15 +192,40 @@ class AuthService {
     return data;
   }
 
-  /**
-   * Deletes a credit rating by computation ID.
-   */
   async deleteCreditRating(computationId) {
     const response = await this._authFetch(`${API_URL}/portfolio/${computationId}`, {
       method: 'DELETE',
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || 'Failed to delete credit rating');
+    return data;
+  }
+
+  // ─────────────────────────────────────
+  // Scenarios methods (scenarios.json)
+  // ─────────────────────────────────────
+
+  async getScenarios() {
+    const response = await this._authFetch(`${API_URL}/scenarios`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch scenarios');
+    return data;
+  }
+
+  async getScenario(computationId) {
+    const response = await this._authFetch(`${API_URL}/scenarios/${computationId}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Scenario not found');
+    return data;
+  }
+
+  async updateScenario(computationId, updatedFields) {
+    const response = await this._authFetch(`${API_URL}/scenarios/${computationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updatedFields),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to update scenario');
     return data;
   }
 }

@@ -1,117 +1,34 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Activity, CheckCircle, XCircle, Loader } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ArrowLeft, Activity, CheckCircle, XCircle, Loader, RefreshCw, AlertCircle } from 'lucide-react';
+import authService from '../services/authService';
 
-// Demo data
-const DEMO_SCENARIOS = [
-  {
-    id: 'CR-2024-001',
-    dateCreated: '2024-01-15',
-    revenue: 45200000,
-    ebitdaMargin: 23.5,
-    fcfToDebt: 0.42,
-    debtToEbitda: 3.2,
-    netDebtToEbitda: 2.8,
-    ebitdaToInterest: 4.5,
-    roce: 18.3,
-    interestCoverage: 4.5
-  },
-  {
-    id: 'CR-2024-002',
-    dateCreated: '2024-02-20',
-    revenue: 128000000,
-    ebitdaMargin: 31.2,
-    fcfToDebt: 0.68,
-    debtToEbitda: 1.8,
-    netDebtToEbitda: 1.5,
-    ebitdaToInterest: 7.2,
-    roce: 24.7,
-    interestCoverage: 7.2
-  },
-  {
-    id: 'CR-2024-003',
-    dateCreated: '2024-03-10',
-    revenue: 8750000,
-    ebitdaMargin: 15.8,
-    fcfToDebt: 0.21,
-    debtToEbitda: 5.1,
-    netDebtToEbitda: 4.6,
-    ebitdaToInterest: 2.8,
-    roce: 9.1,
-    interestCoverage: 2.8
-  },
-  {
-    id: 'CR-2024-004',
-    dateCreated: '2024-04-05',
-    revenue: 67300000,
-    ebitdaMargin: 28.9,
-    fcfToDebt: 0.55,
-    debtToEbitda: 2.4,
-    netDebtToEbitda: 2.1,
-    ebitdaToInterest: 5.9,
-    roce: 21.4,
-    interestCoverage: 5.9
-  },
-  {
-    id: 'CR-2024-005',
-    dateCreated: '2024-05-18',
-    revenue: 3200000,
-    ebitdaMargin: 10.2,
-    fcfToDebt: 0.12,
-    debtToEbitda: 7.3,
-    netDebtToEbitda: 6.8,
-    ebitdaToInterest: 1.5,
-    roce: 4.2,
-    interestCoverage: 1.5
-  },
-  {
-    id: 'CR-2024-006',
-    dateCreated: '2024-06-22',
-    revenue: 89500000,
-    ebitdaMargin: 34.1,
-    fcfToDebt: 0.78,
-    debtToEbitda: 1.2,
-    netDebtToEbitda: 0.9,
-    ebitdaToInterest: 9.8,
-    roce: 28.5,
-    interestCoverage: 9.8
-  },
-  {
-    id: 'CR-2024-007',
-    dateCreated: '2024-07-14',
-    revenue: 22100000,
-    ebitdaMargin: 19.4,
-    fcfToDebt: 0.33,
-    debtToEbitda: 4.0,
-    netDebtToEbitda: 3.6,
-    ebitdaToInterest: 3.5,
-    roce: 13.8,
-    interestCoverage: 3.5
-  },
-  {
-    id: 'CR-2024-008',
-    dateCreated: '2024-08-30',
-    revenue: 156000000,
-    ebitdaMargin: 37.5,
-    fcfToDebt: 0.85,
-    debtToEbitda: 0.9,
-    netDebtToEbitda: 0.6,
-    ebitdaToInterest: 12.3,
-    roce: 32.1,
-    interestCoverage: 12.3
-  }
-];
-
+// ─────────────────────────────────────
 // Editable field validation rules
+// ─────────────────────────────────────
 const EDITABLE_FIELDS = {
-  revenue:          { min: 0,    max: null,  step: 1,    placeholder: '0' },
-  ebitdaMargin:     { min: -100, max: 100,   step: 0.1,  placeholder: '0.0' },
-  fcfToDebt:        { min: -10,  max: 10,    step: 0.01, placeholder: '0.00' },
-  debtToEbitda:     { min: 0,    max: 100,   step: 0.1,  placeholder: '0.0' },
-  netDebtToEbitda:  { min: -100, max: 100,   step: 0.1,  placeholder: '0.0' },
-  ebitdaToInterest: { min: 0,    max: 1000,  step: 0.1,  placeholder: '0.0' },
-  roce:             { min: -100, max: 100,   step: 0.1,  placeholder: '0.0' },
-  interestCoverage: { min: 0,    max: 1000,  step: 0.1,  placeholder: '0.0' }
+  revenue:          { min: 0,    max: null,  step: 1 },
+  ebitdaMargin:     { min: -100, max: 100,   step: 0.1 },
+  fcfToDebt:        { min: -10,  max: 10,    step: 0.01 },
+  debtToEbitda:     { min: 0,    max: 100,   step: 0.1 },
+  netDebtToEbitda:  { min: -100, max: 100,   step: 0.1 },
+  ebitdaToInterest: { min: 0,    max: 1000,  step: 0.1 },
+  roce:             { min: -100, max: 100,   step: 0.1 },
+  interestCoverage: { min: 0,    max: 1000,  step: 0.1 }
 };
+
+const COLUMNS = [
+  { key: 'dateCreated',      label: 'Date Created',        editable: false },
+  { key: 'id',               label: 'Computation ID',      editable: false },
+  { key: 'revenue',          label: 'Revenue',             editable: true,  suffix: '' },
+  { key: 'ebitdaMargin',     label: 'EBITDA Margin %',     editable: true,  suffix: '%' },
+  { key: 'fcfToDebt',        label: 'FCF / Total Debt',    editable: true,  suffix: '' },
+  { key: 'debtToEbitda',     label: 'Total Debt / EBITDA', editable: true,  suffix: 'x' },
+  { key: 'netDebtToEbitda',  label: 'Net Debt / EBITDA',   editable: true,  suffix: 'x' },
+  { key: 'ebitdaToInterest', label: 'EBITDA / Interest',   editable: true,  suffix: 'x' },
+  { key: 'roce',             label: 'ROCE %',              editable: true,  suffix: '%' },
+  { key: 'interestCoverage', label: 'Interest Coverage',   editable: true,  suffix: 'x' },
+  { key: 'submit',           label: 'Submit',              editable: false }
+];
 
 function formatCurrency(value) {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -160,17 +77,55 @@ function ScenariosHeader({ onBack, user }) {
 // Main Scenarios component
 // ─────────────────────────────────────
 export default function Scenarios({ user, onBack }) {
-  const [rows, setRows] = useState(() => DEMO_SCENARIOS.map(r => ({ ...r })));
+  // Server data (source of truth for "original" values)
+  const [serverData, setServerData] = useState([]);
+  // Local editable copy
+  const [rows, setRows] = useState([]);
+  // Loading / error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // Track modified rows
   const [dirtyRows, setDirtyRows] = useState(new Set());
+  // Track submit status per row: 'submitting' | 'success' | 'error'
   const [submitStatus, setSubmitStatus] = useState({});
+  // Track validation errors per row
   const [errors, setErrors] = useState({});
+  // Track focused cell
   const [activeCell, setActiveCell] = useState(null);
 
+  // ─────────────────────────────────
+  // Fetch scenarios from backend
+  // ─────────────────────────────────
+  const fetchScenarios = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await authService.getScenarios();
+      setServerData(result.items);
+      setRows(result.items.map(r => ({ ...r })));
+      setDirtyRows(new Set());
+      setSubmitStatus({});
+      setErrors({});
+    } catch (err) {
+      setError(err.message || 'Failed to load scenarios');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchScenarios();
+  }, [fetchScenarios]);
+
+  // ─────────────────────────────────
+  // Input change handler
+  // ─────────────────────────────────
   const handleChange = (rowId, field, value) => {
     setRows(prev =>
       prev.map(row => (row.id === rowId ? { ...row, [field]: value } : row))
     );
     setDirtyRows(prev => new Set(prev).add(rowId));
+    // Clear field error
     setErrors(prev => {
       const updated = { ...prev };
       if (updated[rowId]) {
@@ -179,6 +134,7 @@ export default function Scenarios({ user, onBack }) {
       }
       return updated;
     });
+    // Clear submit status so button reactivates
     setSubmitStatus(prev => {
       const updated = { ...prev };
       delete updated[rowId];
@@ -186,6 +142,9 @@ export default function Scenarios({ user, onBack }) {
     });
   };
 
+  // ─────────────────────────────────
+  // Validation
+  // ─────────────────────────────────
   const validateRow = (row) => {
     const rowErrors = {};
     Object.keys(EDITABLE_FIELDS).forEach(field => {
@@ -202,6 +161,9 @@ export default function Scenarios({ user, onBack }) {
     return rowErrors;
   };
 
+  // ─────────────────────────────────
+  // Submit: calls backend PUT endpoint
+  // ─────────────────────────────────
   const handleSubmit = async (rowId) => {
     const row = rows.find(r => r.id === rowId);
     const rowErrors = validateRow(row);
@@ -213,55 +175,48 @@ export default function Scenarios({ user, onBack }) {
 
     setSubmitStatus(prev => ({ ...prev, [rowId]: 'submitting' }));
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const success = Math.random() > 0.2;
-    setSubmitStatus(prev => ({ ...prev, [rowId]: success ? 'success' : 'error' }));
-
-    if (success) {
-      setDirtyRows(prev => {
-        const updated = new Set(prev);
-        updated.delete(rowId);
-        return updated;
+    try {
+      // Build payload with only editable fields (parsed as numbers)
+      const payload = {};
+      Object.keys(EDITABLE_FIELDS).forEach(field => {
+        payload[field] = parseFloat(row[field]);
       });
+
+      // Call backend
+      const updated = await authService.updateScenario(rowId, payload);
+
+      // Update serverData so the row is no longer "dirty"
+      setServerData(prev =>
+        prev.map(r => (r.id === rowId ? { ...updated } : r))
+      );
+
+      setSubmitStatus(prev => ({ ...prev, [rowId]: 'success' }));
+      setDirtyRows(prev => {
+        const s = new Set(prev);
+        s.delete(rowId);
+        return s;
+      });
+    } catch (err) {
+      setSubmitStatus(prev => ({ ...prev, [rowId]: 'error' }));
     }
   };
 
+  // ─────────────────────────────────
+  // Reset a single row to server state
+  // ─────────────────────────────────
   const handleReset = (rowId) => {
-    const original = DEMO_SCENARIOS.find(r => r.id === rowId);
-    setRows(prev => prev.map(row => (row.id === rowId ? { ...original } : row)));
-    setDirtyRows(prev => {
-      const updated = new Set(prev);
-      updated.delete(rowId);
-      return updated;
-    });
-    setErrors(prev => {
-      const updated = { ...prev };
-      delete updated[rowId];
-      return updated;
-    });
-    setSubmitStatus(prev => {
-      const updated = { ...prev };
-      delete updated[rowId];
-      return updated;
-    });
+    const original = serverData.find(r => r.id === rowId);
+    if (original) {
+      setRows(prev => prev.map(row => (row.id === rowId ? { ...original } : row)));
+    }
+    setDirtyRows(prev => { const s = new Set(prev); s.delete(rowId); return s; });
+    setErrors(prev => { const u = { ...prev }; delete u[rowId]; return u; });
+    setSubmitStatus(prev => { const u = { ...prev }; delete u[rowId]; return u; });
   };
 
-  const columns = [
-    { key: 'dateCreated',      label: 'Date Created',        editable: false },
-    { key: 'id',               label: 'Computation ID',      editable: false },
-    { key: 'revenue',          label: 'Revenue',             editable: true,  suffix: '' },
-    { key: 'ebitdaMargin',     label: 'EBITDA Margin %',     editable: true,  suffix: '%' },
-    { key: 'fcfToDebt',        label: 'FCF / Total Debt',    editable: true,  suffix: '' },
-    { key: 'debtToEbitda',     label: 'Total Debt / EBITDA', editable: true,  suffix: 'x' },
-    { key: 'netDebtToEbitda',  label: 'Net Debt / EBITDA',   editable: true,  suffix: 'x' },
-    { key: 'ebitdaToInterest', label: 'EBITDA / Interest',   editable: true,  suffix: 'x' },
-    { key: 'roce',             label: 'ROCE %',              editable: true,  suffix: '%' },
-    { key: 'interestCoverage', label: 'Interest Coverage',   editable: true,  suffix: 'x' },
-    { key: 'submit',           label: 'Submit',              editable: false }
-  ];
-
+  // ─────────────────────────────────
+  // Render submit button per row
+  // ─────────────────────────────────
   const renderSubmitButton = (row) => {
     const status = submitStatus[row.id];
     const isDirty = dirtyRows.has(row.id);
@@ -319,6 +274,9 @@ export default function Scenarios({ user, onBack }) {
     );
   };
 
+  // ─────────────────────────────────
+  // Render individual cell
+  // ─────────────────────────────────
   const renderCell = (row, col) => {
     if (col.key === 'dateCreated') return <span className="text-gray-600 text-xs">{formatDate(row.dateCreated)}</span>;
     if (col.key === 'id')          return <span className="text-gray-800 text-xs font-mono">{row.id}</span>;
@@ -328,7 +286,7 @@ export default function Scenarios({ user, onBack }) {
     const rules = EDITABLE_FIELDS[col.key];
     const hasError = errors[row.id]?.[col.key];
     const isActive = activeCell?.rowId === row.id && activeCell?.field === col.key;
-    const originalValue = DEMO_SCENARIOS.find(r => r.id === row.id)?.[col.key];
+    const originalValue = serverData.find(r => r.id === row.id)?.[col.key];
     const valueChanged = parseFloat(row[col.key]) !== originalValue;
 
     return (
@@ -366,6 +324,51 @@ export default function Scenarios({ user, onBack }) {
     );
   };
 
+  // ─────────────────────────────────
+  // Loading state
+  // ─────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingTop: '80px' }}>
+        <ScenariosHeader onBack={onBack} user={user} />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <Loader className="w-10 h-10 text-gray-400 animate-spin" />
+          <p className="text-gray-500 text-sm">Loading scenarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────
+  // Error state
+  // ─────────────────────────────────
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingTop: '80px' }}>
+        <ScenariosHeader onBack={onBack} user={user} />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl border border-red-200 shadow-sm p-8 max-w-md w-full text-center">
+            <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-7 h-7 text-red-500" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Failed to load data</h2>
+            <p className="text-sm text-gray-500 mb-6">{error}</p>
+            <button
+              onClick={fetchScenarios}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────
+  // Main render
+  // ─────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50" style={{ paddingTop: '80px' }}>
       <ScenariosHeader onBack={onBack} user={user} />
@@ -379,18 +382,18 @@ export default function Scenarios({ user, onBack }) {
               <h3 className="text-sm font-semibold text-blue-900">How to use Scenarios</h3>
               <p className="text-sm text-blue-700 mt-1">
                 Edit any financial metric directly in the table below to run a credit rating scenario.
-                Modified fields are highlighted in yellow. Click <strong>Submit</strong> on any row to publish
-                your scenario. Use <strong>Reset</strong> to revert a row back to its original values.
+                Modified fields are highlighted in yellow. Click <strong>Submit</strong> on any row to save
+                your changes to the server. Use <strong>Reset</strong> to revert a row back to its last saved values.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-6 mb-4">
+        {/* Legend + row counter */}
+        <div className="flex items-center gap-6 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded border border-gray-200 bg-gray-50"></div>
-            <span className="text-xs text-gray-500">Original value</span>
+            <span className="text-xs text-gray-500">Saved value</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded border border-yellow-300 bg-yellow-50"></div>
@@ -404,9 +407,18 @@ export default function Scenarios({ user, onBack }) {
             <div className="w-4 h-4 rounded border border-red-400 bg-red-50"></div>
             <span className="text-xs text-gray-500">Error</span>
           </div>
-          <span className="text-xs text-gray-400 ml-auto">
-            {dirtyRows.size} row{dirtyRows.size !== 1 ? 's' : ''} modified
-          </span>
+          <div className="ml-auto flex items-center gap-4">
+            <span className="text-xs text-gray-400">
+              {dirtyRows.size} row{dirtyRows.size !== 1 ? 's' : ''} modified
+            </span>
+            <button
+              onClick={fetchScenarios}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Table */}
@@ -415,7 +427,7 @@ export default function Scenarios({ user, onBack }) {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {columns.map((col) => (
+                  {COLUMNS.map((col) => (
                     <th key={col.key} className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         {col.label}
@@ -435,13 +447,21 @@ export default function Scenarios({ user, onBack }) {
                       ${dirtyRows.has(row.id) ? 'ring-1 ring-inset ring-yellow-200' : ''}
                     `}
                   >
-                    {columns.map((col) => (
+                    {COLUMNS.map((col) => (
                       <td key={col.key} className="px-3 py-3 whitespace-nowrap">
                         {renderCell(row, col)}
                       </td>
                     ))}
                   </tr>
                 ))}
+
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={COLUMNS.length} className="px-4 py-12 text-center">
+                      <p className="text-gray-500 text-sm">No scenarios found</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -453,7 +473,7 @@ export default function Scenarios({ user, onBack }) {
             </span>
             <button
               onClick={() => {
-                setRows(DEMO_SCENARIOS.map(r => ({ ...r })));
+                setRows(serverData.map(r => ({ ...r })));
                 setDirtyRows(new Set());
                 setErrors({});
                 setSubmitStatus({});
