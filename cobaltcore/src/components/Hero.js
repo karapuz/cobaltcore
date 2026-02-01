@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function Hero({ onSignUpClick }) {
   const stats = [
-    { label: 'Total Funded', value: '$2B+' },
-    { label: 'Active Investors', value: '10,000+' },
+    { label: 'Total Market Size', value: '$54B+' },
+    { label: 'Active Investors', value: '100,000+' },
     { label: 'Average Return', value: '14.5%' }
   ];
 
@@ -15,13 +15,13 @@ export default function Hero({ onSignUpClick }) {
             Private credit. <span className="italic">Simplified.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-4xl mx-auto">
-            Join thousands of investors who have funded over $2 billion in deals on Percent. Start your journey in private credit investing today.
+            Join thousands of investors who have improve their chances to fund by using Compass. Start your journey in private credit investing today.
           </p>
           
           <div className="text-left max-w-2xl mx-auto mb-12 space-y-3">
             <div className="flex items-start text-gray-700 text-lg">
               <span className="mr-3">•</span>
-              <span>Potential for up to 20% annualized returns.</span>
+              <span>Improving quality of your funding.</span>
             </div>
             <div className="flex items-start text-gray-700 text-lg">
               <span className="mr-3">•</span>
@@ -35,7 +35,7 @@ export default function Hero({ onSignUpClick }) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-10 max-w-2xl mx-auto">
             <p className="text-blue-900 font-semibold text-base">
-              New Investor Bonus: Earn up to $500 after making your first investment*
+              New Investor Bonus: Recieve up to $500 in credits when start using Compass Platform*
             </p>
           </div>
 
