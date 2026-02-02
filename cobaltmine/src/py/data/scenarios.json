@@ -11,7 +11,8 @@
                 "netDebtToEbitda": 2.8,
                 "ebitdaToInterest": 4.5,
                 "roce": 18.3,
-                "interestCoverage": 1
+                "interestCoverage": 3,
+                "creditRating": "BB+"
             },
             {
                 "id": "CR-2024-002",

@@ -19,6 +19,7 @@ const EDITABLE_FIELDS = {
 const COLUMNS = [
   { key: 'dateCreated',      label: 'Date Created',        editable: false },
   { key: 'id',               label: 'Computation ID',      editable: false },
+  { key: 'creditRating',    label: 'RATING',              editable: false },
   { key: 'revenue',          label: 'Revenue',             editable: true,  suffix: '' },
   { key: 'ebitdaMargin',     label: 'EBITDA Margin %',     editable: true,  suffix: '%' },
   { key: 'fcfToDebt',        label: 'FCF / Total Debt',    editable: true,  suffix: '' },
@@ -189,6 +190,10 @@ export default function Scenarios({ user, onBack }) {
       setServerData(prev =>
         prev.map(r => (r.id === rowId ? { ...updated } : r))
       );
+      // Sync rows with the full server response (picks up new fields like creditRating)
+      setRows(prev =>
+        prev.map(r => (r.id === rowId ? { ...updated } : r))
+      );
 
       setSubmitStatus(prev => ({ ...prev, [rowId]: 'success' }));
       setDirtyRows(prev => {
@@ -280,6 +285,21 @@ export default function Scenarios({ user, onBack }) {
   const renderCell = (row, col) => {
     if (col.key === 'dateCreated') return <span className="text-gray-600 text-xs">{formatDate(row.dateCreated)}</span>;
     if (col.key === 'id')          return <span className="text-gray-800 text-xs font-mono">{row.id}</span>;
+    if (col.key === 'creditRating') {
+      const rating = row.creditRating;
+      let colorClass = 'bg-gray-100 text-gray-500';
+      if (rating) {
+        if (rating.startsWith('BBB') || rating.startsWith('A')) colorClass = 'bg-green-100 text-green-800';
+        else if (rating.startsWith('BB') || rating === 'B+')    colorClass = 'bg-yellow-100 text-yellow-800';
+        else if (rating === 'B')                                colorClass = 'bg-orange-100 text-orange-800';
+        else                                                    colorClass = 'bg-red-100 text-red-800';
+      }
+      return (
+        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${colorClass}`}>
+          {rating || '—'}
+        </span>
+      );
+    }
     if (col.key === 'submit')      return renderSubmitButton(row);
 
     // Editable cell
