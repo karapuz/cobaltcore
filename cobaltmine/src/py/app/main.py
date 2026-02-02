@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+import os
 
 from .database import engine, get_db, Base
 from .models import User
@@ -35,6 +37,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─────────────────────────────────────
+# Resolve the data/ directory relative
+# to the project root (one level up from app/)
+# ─────────────────────────────────────
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PDFS_DIR = os.path.join(BASE_DIR, "data", "pdfs")
 
 # ─────────────────────────────────────
 # Health check
@@ -139,6 +148,31 @@ async def get_portfolio(current_user: User = Depends(get_current_user)):
     """Get all credit ratings for the current user"""
     ratings = json_store.get_credit_ratings(current_user.id)
     return {"total": len(ratings), "items": ratings}
+
+@app.get("/api/portfolio/{computation_id}/pdf")
+async def get_credit_rating_pdf(
+    computation_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Serve the Credit Rating PDF report for a given computation ID.
+    PDFs are expected at: data/pdfs/{computation_id}.pdf
+    """
+    # Sanitise: strip path separators so no directory-traversal is possible
+    safe_name = os.path.basename(computation_id)
+    pdf_path = os.path.join(PDFS_DIR, f"{safe_name}.pdf")
+
+    if not os.path.isfile(pdf_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PDF report not found for {computation_id}"
+        )
+
+    return FileResponse(
+        path=pdf_path,
+        media_type="application/pdf",
+        filename=f"{safe_name}.pdf"
+    )
 
 @app.get("/api/portfolio/{computation_id}")
 async def get_credit_rating(

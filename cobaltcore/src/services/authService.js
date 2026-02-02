@@ -172,6 +172,31 @@ class AuthService {
     return data;
   }
 
+  /**
+   * Fetch the Credit Rating PDF for a given computation ID.
+   * Returns a blob: URL string ready to use as an iframe src.
+   * Caller is responsible for revoking the URL via URL.revokeObjectURL().
+   */
+  async getCreditRatingPdf(computationId) {
+    // Use _authFetch but override Content-Type so we don't force JSON on the response
+    const response = await this._authFetch(`${API_URL}/portfolio/${computationId}/pdf`, {
+      headers: { 'Accept': 'application/pdf' },  // merged on top of default headers inside _authFetch
+    });
+
+    if (!response.ok) {
+      // Try to read a JSON error body; fall back to status text
+      let detail = `Failed to fetch PDF (${response.status})`;
+      try {
+        const err = await response.json();
+        detail = err.detail || detail;
+      } catch (_) { /* body wasn't JSON */ }
+      throw new Error(detail);
+    }
+
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  }
+
   async addCreditRating(rating) {
     const response = await this._authFetch(`${API_URL}/portfolio`, {
       method: 'POST',
