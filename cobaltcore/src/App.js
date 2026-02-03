@@ -50,34 +50,34 @@ export default function App() {
   // Render the appropriate page
   const renderPage = () => {
     // Resource pages
-    if (currentPage.startsWith('resource-')) {
+    if (currentPage.startsWith('methodology-')) {
       const industryMap = {
-        'resource-midstream-energy': 'Midstream Energy',
-        'resource-manufacturing': 'Manufacturing',
-        'resource-diversified-technology': 'Diversified Technology',
-        'resource-retail-apparel': 'Retail and Apparel',
-        'resource-communications-infrastructure': 'Communications Infrastructure',
-        'resource-gaming': 'Gaming',
-        'resource-media': 'Media',
-        'resource-soft-beverages': 'Soft Beverages',
-        'resource-unregulated-utilities': 'Unregulated Utilities and Power Companies',
-        'resource-semiconductors': 'Semiconductors',
-        'resource-automobile-manufacturers': 'Automobile Manufacturers',
-        'resource-equipment-transportation-rental': 'Equipment and Transportation Rental',
-        'resource-medical-products-devices': 'Medical Products and Devices',
-        'resource-protein-agriculture': 'Protein and Agriculture',
-        'resource-oilfield-services': 'Oilfield Services',
-        'resource-homebuilding-property-development': 'Homebuilding and Property Development',
-        'resource-shipping': 'Shipping',
-        'resource-pharmaceuticals': 'Pharmaceuticals',
-        'resource-steel': 'Steel',
-        'resource-alcoholic-beverages': 'Alcoholic Beverages',
+        'methodology-midstream-energy': 'Midstream Energy',
+        'methodology-manufacturing': 'Manufacturing',
+        'methodology-diversified-technology': 'Diversified Technology',
+        'methodology-retail-apparel': 'Retail and Apparel',
+        'methodology-communications-infrastructure': 'Communications Infrastructure',
+        'methodology-gaming': 'Gaming',
+        'methodology-media': 'Media',
+        'methodology-soft-beverages': 'Soft Beverages',
+        'methodology-unregulated-utilities': 'Unregulated Utilities and Power Companies',
+        'methodology-semiconductors': 'Semiconductors',
+        'methodology-automobile-manufacturers': 'Automobile Manufacturers',
+        'methodology-equipment-transportation-rental': 'Equipment and Transportation Rental',
+        'methodology-medical-products-devices': 'Medical Products and Devices',
+        'methodology-protein-agriculture': 'Protein and Agriculture',
+        'methodology-oilfield-services': 'Oilfield Services',
+        'methodology-homebuilding-property-development': 'Homebuilding and Property Development',
+        'methodology-shipping': 'Shipping',
+        'methodology-pharmaceuticals': 'Pharmaceuticals',
+        'methodology-steel': 'Steel',
+        'methodology-alcoholic-beverages': 'Alcoholic Beverages',
       };
       return (
         <UnderConstruction
           user={user}
           onBack={() => handleNavigate('home')}
-          industry={industryMap[currentPage] || 'Resources'}
+          industry={industryMap[currentPage] || 'Methodologies'}
         />
       );
     }
