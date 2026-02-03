@@ -247,6 +247,7 @@ async def update_scenario(
     current_user: User = Depends(get_current_user)
 ):
     """Update an existing scenario (called on Submit)"""
+    print("/api/scenarios -> {computation_id} - {updated_fields}")
     updated = json_store.update_scenario(current_user.id, computation_id, updated_fields)
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")

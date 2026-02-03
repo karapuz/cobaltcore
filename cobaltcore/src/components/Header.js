@@ -5,6 +5,7 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
+  const [resourcesMenuOpen, setResourcesMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50 shadow-sm">
@@ -34,10 +35,209 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                 Company <ChevronDown className="w-4 h-4" />
               </button>
             </div>
-            <div className="relative group">
-              <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
-                Resources <ChevronDown className="w-4 h-4" />
+            <div className="relative">
+              <button
+                onClick={() => setResourcesMenuOpen(!resourcesMenuOpen)}
+                className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1"
+              >
+                Resources <ChevronDown className={`w-4 h-4 transition-transform ${resourcesMenuOpen ? 'rotate-180' : ''}`} />
               </button>
+
+              {resourcesMenuOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setResourcesMenuOpen(false)}
+                  ></div>
+
+                  {/* Dropdown - two columns for better layout */}
+                  <div className="absolute top-full left-0 mt-2 w-[32rem] bg-white rounded-lg shadow-lg border border-gray-100 py-3 z-20">
+                    <div className="grid grid-cols-2 gap-x-2 px-2">
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-midstream-energy');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Midstream Energy
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-manufacturing');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Manufacturing
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-diversified-technology');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Diversified Technology
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-retail-apparel');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Retail and Apparel
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-communications-infrastructure');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Communications Infrastructure
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-gaming');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Gaming
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-media');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Media
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-soft-beverages');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Soft Beverages
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-unregulated-utilities');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Unregulated Utilities and Power Companies
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-semiconductors');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Semiconductors
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-automobile-manufacturers');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Automobile Manufacturers
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-equipment-transportation-rental');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Equipment and Transportation Rental
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-medical-products-devices');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Medical Products and Devices
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-protein-agriculture');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Protein and Agriculture
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-oilfield-services');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Oilfield Services
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-homebuilding-property-development');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Homebuilding and Property Development
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-shipping');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Shipping
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-pharmaceuticals');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Pharmaceuticals
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-steel');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Steel
+                      </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('resource-alcoholic-beverages');
+                          setResourcesMenuOpen(false);
+                        }}
+                        className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition"
+                      >
+                        Alcoholic Beverages
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Services Menu - only visible when logged in */}
@@ -211,7 +411,41 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
             <a href="#" className="block text-gray-700 font-medium py-2">For Investors</a>
             <a href="#" className="block text-gray-700 font-medium py-2">For Borrowers</a>
             <a href="#" className="block text-gray-700 font-medium py-2">Company</a>
-            <a href="#" className="block text-gray-700 font-medium py-2">Resources</a>
+            
+            {/* Resources Expandable */}
+            <div>
+              <button
+                onClick={() => setResourcesMenuOpen(!resourcesMenuOpen)}
+                className="flex items-center justify-between w-full text-gray-700 font-medium py-2"
+              >
+                Resources
+                <ChevronDown className={`w-4 h-4 transition-transform ${resourcesMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {resourcesMenuOpen && (
+                <div className="pl-4 pt-2 space-y-2">
+                  <button onClick={() => { onNavigate('resource-midstream-energy'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Midstream Energy</button>
+                  <button onClick={() => { onNavigate('resource-manufacturing'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Manufacturing</button>
+                  <button onClick={() => { onNavigate('resource-diversified-technology'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Diversified Technology</button>
+                  <button onClick={() => { onNavigate('resource-retail-apparel'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Retail and Apparel</button>
+                  <button onClick={() => { onNavigate('resource-communications-infrastructure'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Communications Infrastructure</button>
+                  <button onClick={() => { onNavigate('resource-gaming'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Gaming</button>
+                  <button onClick={() => { onNavigate('resource-media'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Media</button>
+                  <button onClick={() => { onNavigate('resource-soft-beverages'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Soft Beverages</button>
+                  <button onClick={() => { onNavigate('resource-unregulated-utilities'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Unregulated Utilities and Power Companies</button>
+                  <button onClick={() => { onNavigate('resource-semiconductors'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Semiconductors</button>
+                  <button onClick={() => { onNavigate('resource-automobile-manufacturers'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Automobile Manufacturers</button>
+                  <button onClick={() => { onNavigate('resource-equipment-transportation-rental'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Equipment and Transportation Rental</button>
+                  <button onClick={() => { onNavigate('resource-medical-products-devices'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Medical Products and Devices</button>
+                  <button onClick={() => { onNavigate('resource-protein-agriculture'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Protein and Agriculture</button>
+                  <button onClick={() => { onNavigate('resource-oilfield-services'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Oilfield Services</button>
+                  <button onClick={() => { onNavigate('resource-homebuilding-property-development'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Homebuilding and Property Development</button>
+                  <button onClick={() => { onNavigate('resource-shipping'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Shipping</button>
+                  <button onClick={() => { onNavigate('resource-pharmaceuticals'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Pharmaceuticals</button>
+                  <button onClick={() => { onNavigate('resource-steel'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Steel</button>
+                  <button onClick={() => { onNavigate('resource-alcoholic-beverages'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">Alcoholic Beverages</button>
+                </div>
+              )}
+            </div>
             
             {user ? (
               <div className="pt-4 border-t border-gray-100 space-y-3">

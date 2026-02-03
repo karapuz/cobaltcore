@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 import LoginModal from './components/LoginModal';
 import Portfolio from './components/Portfolio';
 import Scenarios from './components/Scenarios';
+import UnderConstruction from './components/UnderConstruction';
 import authService from './services/authService';
 
 export default function App() {
@@ -48,6 +49,39 @@ export default function App() {
 
   // Render the appropriate page
   const renderPage = () => {
+    // Resource pages
+    if (currentPage.startsWith('resource-')) {
+      const industryMap = {
+        'resource-midstream-energy': 'Midstream Energy',
+        'resource-manufacturing': 'Manufacturing',
+        'resource-diversified-technology': 'Diversified Technology',
+        'resource-retail-apparel': 'Retail and Apparel',
+        'resource-communications-infrastructure': 'Communications Infrastructure',
+        'resource-gaming': 'Gaming',
+        'resource-media': 'Media',
+        'resource-soft-beverages': 'Soft Beverages',
+        'resource-unregulated-utilities': 'Unregulated Utilities and Power Companies',
+        'resource-semiconductors': 'Semiconductors',
+        'resource-automobile-manufacturers': 'Automobile Manufacturers',
+        'resource-equipment-transportation-rental': 'Equipment and Transportation Rental',
+        'resource-medical-products-devices': 'Medical Products and Devices',
+        'resource-protein-agriculture': 'Protein and Agriculture',
+        'resource-oilfield-services': 'Oilfield Services',
+        'resource-homebuilding-property-development': 'Homebuilding and Property Development',
+        'resource-shipping': 'Shipping',
+        'resource-pharmaceuticals': 'Pharmaceuticals',
+        'resource-steel': 'Steel',
+        'resource-alcoholic-beverages': 'Alcoholic Beverages',
+      };
+      return (
+        <UnderConstruction
+          user={user}
+          onBack={() => handleNavigate('home')}
+          industry={industryMap[currentPage] || 'Resources'}
+        />
+      );
+    }
+
     switch (currentPage) {
       case 'portfolio':
         return <Portfolio user={user} onBack={() => handleNavigate('home')} />;

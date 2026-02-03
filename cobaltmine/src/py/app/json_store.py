@@ -154,7 +154,7 @@ def update_scenario(user_id: int, computation_id: str, updated_fields: dict) -> 
                 _write_file(SCENARIOS_FILE, data)
                 return scenarios[i]
 
-        return None
+        return
 
 
 def seed_scenarios_data(user_id: int) -> None:
