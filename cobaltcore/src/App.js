@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 import LoginModal from './components/LoginModal';
 import Portfolio from './components/Portfolio';
 import Scenarios from './components/Scenarios';
+import ScenarioSurface from './components/ScenarioSurface';
 import UnderConstruction from './components/UnderConstruction';
 import About from './components/About';
 import authService from './services/authService';
@@ -19,6 +20,7 @@ export default function App() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('home'); // 'home', 'portfolio', 'scenarios'
+  const [scenarioData, setScenarioData] = useState(null); // For passing row data to scenario surface
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -44,8 +46,9 @@ export default function App() {
     setCurrentPage('home');
   };
 
-  const handleNavigate = (page) => {
+  const handleNavigate = (page, data = null) => {
     setCurrentPage(page);
+    setScenarioData(data); // Store data for scenario surface
   };
 
   // Render the appropriate page
@@ -87,7 +90,9 @@ export default function App() {
       case 'portfolio':
         return <Portfolio user={user} onBack={() => handleNavigate('home')} />;
       case 'scenarios':
-        return <Scenarios user={user} onBack={() => handleNavigate('home')} />;
+        return <Scenarios user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
+      case 'scenario-surface':
+        return <ScenarioSurface user={user} onBack={() => handleNavigate('scenarios')} initialData={scenarioData} />;
       case 'about':
         return <About user={user} onBack={() => handleNavigate('home')} />;
       case 'home':

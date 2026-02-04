@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity, TrendingUp } from 'lucide-react';
 
 export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -317,6 +317,21 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                           <p className="text-xs text-gray-500">Run Simulations</p>
                         </div>
                       </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('scenario-surface');
+                          setServicesMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-3"
+                      >
+                        <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">Scenario Surface</p>
+                          <p className="text-xs text-gray-500">Multi-Parameter Analysis</p>
+                        </div>
+                      </button>
                     </div>
                   </>
                 )}
@@ -533,6 +548,21 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                     <div className="text-left">
                       <p className="text-sm font-medium text-gray-900">Scenarios</p>
                       <p className="text-xs text-gray-500">Run Simulations</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onNavigate('scenario-surface');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  >
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">Scenario Surface</p>
+                      <p className="text-xs text-gray-500">Multi-Parameter Analysis</p>
                     </div>
                   </button>
                 </div>

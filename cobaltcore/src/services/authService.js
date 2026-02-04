@@ -172,25 +172,19 @@ class AuthService {
     return data;
   }
 
-  /**
-   * Fetch the Credit Rating PDF for a given computation ID.
-   * Returns a blob: URL string ready to use as an iframe src.
-   * Caller is responsible for revoking the URL via URL.revokeObjectURL().
-   */
   async getCreditRatingPdf(computationId) {
-    // Use _authFetch but override Content-Type so we don't force JSON on the response
-    const response = await this._authFetch(`${API_URL}/portfolio/${computationId}/pdf`, {
-      headers: { 'Accept': 'application/pdf' },  // merged on top of default headers inside _authFetch
+    const token = this.getAccessToken();
+    const response = await fetch(`${API_URL}/portfolio/${computationId}/pdf`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/pdf',
+      },
     });
 
     if (!response.ok) {
-      // Try to read a JSON error body; fall back to status text
-      let detail = `Failed to fetch PDF (${response.status})`;
-      try {
-        const err = await response.json();
-        detail = err.detail || detail;
-      } catch (_) { /* body wasn't JSON */ }
-      throw new Error(detail);
+      const data = await response.json();
+      throw new Error(data.detail || 'Failed to fetch PDF');
     }
 
     const blob = await response.blob();
@@ -251,6 +245,27 @@ class AuthService {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || 'Failed to update scenario');
+    return data;
+  }
+
+  // ─────────────────────────────────────
+  // Scenario Surface methods
+  // ─────────────────────────────────────
+
+  async submitScenarioSurfaceRequest(requestData) {
+    const response = await this._authFetch(`${API_URL}/scenario-surface/request`, {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to submit scenario surface request');
+    return data;
+  }
+
+  async getScenarioSurfaceResponse(responseId) {
+    const response = await this._authFetch(`${API_URL}/scenario-surface/response/${responseId}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch scenario surface response');
     return data;
   }
 }

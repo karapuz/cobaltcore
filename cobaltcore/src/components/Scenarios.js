@@ -28,7 +28,8 @@ const COLUMNS = [
   { key: 'ebitdaToInterest', label: 'EBITDA / Interest',   editable: true,  suffix: 'x' },
   { key: 'roce',             label: 'ROCE %',              editable: true,  suffix: '%' },
   { key: 'interestCoverage', label: 'Interest Coverage',   editable: true,  suffix: 'x' },
-  { key: 'submit',           label: 'Submit',              editable: false }
+  { key: 'submit',           label: 'Submit',              editable: false },
+  { key: 'surface',          label: 'Surface',             editable: false }
 ];
 
 function formatCurrency(value) {
@@ -77,7 +78,7 @@ function ScenariosHeader({ onBack, user }) {
 // ─────────────────────────────────────
 // Main Scenarios component
 // ─────────────────────────────────────
-export default function Scenarios({ user, onBack }) {
+export default function Scenarios({ user, onBack, onNavigate }) {
   // Server data (source of truth for "original" values)
   const [serverData, setServerData] = useState([]);
   // Local editable copy
@@ -301,6 +302,16 @@ export default function Scenarios({ user, onBack }) {
       );
     }
     if (col.key === 'submit')      return renderSubmitButton(row);
+    if (col.key === 'surface') {
+      return (
+        <button
+          onClick={() => onNavigate('scenario-surface', row)}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition"
+        >
+          Surface
+        </button>
+      );
+    }
 
     // Editable cell
     const rules = EDITABLE_FIELDS[col.key];
