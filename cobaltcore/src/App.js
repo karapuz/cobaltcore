@@ -12,6 +12,7 @@ import LoginModal from './components/LoginModal';
 import Portfolio from './components/Portfolio';
 import Scenarios from './components/Scenarios';
 import UnderConstruction from './components/UnderConstruction';
+import About from './components/About';
 import authService from './services/authService';
 
 export default function App() {
@@ -87,6 +88,8 @@ export default function App() {
         return <Portfolio user={user} onBack={() => handleNavigate('home')} />;
       case 'scenarios':
         return <Scenarios user={user} onBack={() => handleNavigate('home')} />;
+      case 'about':
+        return <About user={user} onBack={() => handleNavigate('home')} />;
       case 'home':
       default:
         return (

@@ -6,6 +6,7 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [methodologiesMenuOpen, setMethodologiesMenuOpen] = useState(false);
+  const [companyMenuOpen, setCompanyMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50 shadow-sm">
@@ -20,6 +21,37 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-10 items-center">
+            <div className="relative">
+              <button
+                onClick={() => setCompanyMenuOpen(!companyMenuOpen)}
+                className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1"
+              >
+                Company <ChevronDown className={`w-4 h-4 transition-transform ${companyMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {companyMenuOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setCompanyMenuOpen(false)}
+                  ></div>
+
+                  {/* Dropdown */}
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-20">
+                    <button
+                      onClick={() => {
+                        onNavigate('about');
+                        setCompanyMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      About
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             <div className="relative group">
               <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
                 For Investors <ChevronDown className="w-4 h-4" />
@@ -28,11 +60,6 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
             <div className="relative group">
               <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
                 For Borrowers <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="relative group">
-              <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
-                Company <ChevronDown className="w-4 h-4" />
               </button>
             </div>
             <div className="relative">
@@ -408,9 +435,24 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white">
           <div className="px-4 py-6 space-y-4">
+            {/* Company Expandable */}
+            <div>
+              <button
+                onClick={() => setCompanyMenuOpen(!companyMenuOpen)}
+                className="flex items-center justify-between w-full text-gray-700 font-medium py-2"
+              >
+                Company
+                <ChevronDown className={`w-4 h-4 transition-transform ${companyMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {companyMenuOpen && (
+                <div className="pl-4 pt-2 space-y-2">
+                  <button onClick={() => { onNavigate('about'); setMobileMenuOpen(false); }} className="block text-sm text-gray-600 hover:text-gray-900 py-1.5">About</button>
+                </div>
+              )}
+            </div>
+            
             <a href="#" className="block text-gray-700 font-medium py-2">For Investors</a>
             <a href="#" className="block text-gray-700 font-medium py-2">For Borrowers</a>
-            <a href="#" className="block text-gray-700 font-medium py-2">Company</a>
             
             {/* Methodologies Expandable */}
             <div>
