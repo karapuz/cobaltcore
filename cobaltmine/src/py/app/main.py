@@ -323,8 +323,11 @@ async def scenario_surface_response(
                                 if k.endswith('_lower') or k.endswith('_upper'))
         param_count = params_with_bounds // 2  # Each param has lower and upper
         
+        _1d = False
+        _2d = True
+
         # Generate mock response based on parameter count
-        if param_count == 1:
+        if _1d or param_count == 1:
             # Find which parameter has bounds
             param_name = None
             for key in request_params.keys():
@@ -338,7 +341,7 @@ async def scenario_surface_response(
                 "param_name": param_name or "revenue",
                 "timeseries": generate_1d_mock_data(param_name)
             }
-        elif param_count == 2:
+        elif _2d or param_count == 2:
             surface_data = {
                 "status": "completed",
                 "plot_type": "2D",
@@ -374,8 +377,8 @@ def generate_2d_mock_data():
     ratings = ["BB", "BB+", "BBB-", "BB+", "BBB-", "BBB", "BBB-", "BBB", "BBB+", "BBB", "BBB+", "A-"]
     timeseries = {}
     idx = 0
-    for rev in [40000000, 45000000, 50000000, 55000000]:
-        for ebitda in [18.0, 22.0, 26.0]:
+    for rev in [50000000, 40000000,   55000000, 45000000,]:
+        for ebitda in [26.0, 18.0, 22.0, 19.0,]:
             timeseries[str(idx)] = [rev, ebitda, ratings[idx % len(ratings)]]
             idx += 1
             if idx >= 12:

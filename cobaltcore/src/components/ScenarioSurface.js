@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Activity, Loader, AlertCircle } from 'lucide-react';
 import authService from '../services/authService';
 
@@ -62,6 +62,23 @@ export default function ScenarioSurface({ user, onBack, initialData }) {
       }));
     }
   }, [initialData]);
+
+  // Load Plotly from CDN if not already loaded
+  useEffect(() => {
+    if (typeof window.Plotly === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+      
+      return () => {
+        // Cleanup if needed
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
+    }
+  }, []);
 
   // Response state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -419,10 +436,11 @@ function Plot1D({ data, formData }) {
   );
 }
 
-// 2D Scatter Plot Component
+// 2D Scatter Plot Component (using Plotly 3D surface with rating as Z-axis)
 function Plot2D({ data, formData }) {
   const { param_names, timeseries } = data;
   const points = Object.values(timeseries);
+  const plotRef = useRef(null);
   
   if (points.length === 0) return <p className="text-gray-500">No data available</p>;
 
@@ -451,15 +469,72 @@ function Plot2D({ data, formData }) {
   );
   
   if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
-  
-  const normXValues = validPoints.map(p => p.normX);
-  const normYValues = validPoints.map(p => p.normY);
-  const minX = Math.min(...normXValues);
-  const maxX = Math.max(...normXValues);
-  const minY = Math.min(...normYValues);
-  const maxY = Math.max(...normYValues);
-  const rangeX = maxX - minX || 1;
-  const rangeY = maxY - minY || 1;
+
+  // Map ratings to numeric values for Z-axis
+  const ratingMap = {
+    'CCC+': 1, 'CCC': 1, 'B-': 2, 'B': 3, 'B+': 4,
+    'BB-': 5, 'BB': 6, 'BB+': 7,
+    'BBB-': 8, 'BBB': 9, 'BBB+': 10,
+    'A-': 11, 'A': 12, 'A+': 13,
+    'AA-': 14, 'AA': 15, 'AA+': 16,
+    'AAA': 17
+  };
+
+  useEffect(() => {
+    if (!plotRef.current || typeof window.Plotly === 'undefined') return;
+
+    const trace = {
+      x: validPoints.map(p => p.normX),
+      y: validPoints.map(p => p.normY),
+      z: validPoints.map(p => ratingMap[p.rating] || 5),
+      mode: 'markers',
+      type: 'scatter3d',
+      marker: {
+        size: 8,
+        color: validPoints.map(p => ratingMap[p.rating] || 5),
+        colorscale: [
+          [0, '#ef4444'],      // Red (low ratings)
+          [0.3, '#f97316'],    // Orange
+          [0.5, '#eab308'],    // Yellow
+          [0.7, '#22c55e'],    // Green
+          [1, '#10b981']       // Emerald (high ratings)
+        ],
+        showscale: true,
+        colorbar: {
+          title: 'Rating',
+          tickvals: [1, 3, 5, 7, 9, 11, 13, 15, 17],
+          ticktext: ['CCC+', 'B', 'BB-', 'BB+', 'BBB', 'A-', 'A+', 'AA+', 'AAA']
+        }
+      },
+      text: validPoints.map(p => p.rating),
+      hovertemplate: 
+        `<b>${param_names[0]}:</b> %{x:.1f}%<br>` +
+        `<b>${param_names[1]}:</b> %{y:.1f}%<br>` +
+        `<b>Rating:</b> %{text}<extra></extra>`
+    };
+
+    const layout = {
+      title: `${param_names[0]} vs ${param_names[1]} (3D View)`,
+      scene: {
+        xaxis: { title: `${param_names[0]} (% deviation)` },
+        yaxis: { title: `${param_names[1]} (% deviation)` },
+        zaxis: { title: 'Credit Rating Score' },
+        camera: {
+          eye: { x: 1.5, y: 1.5, z: 1.3 }
+        }
+      },
+      margin: { l: 0, r: 0, t: 40, b: 0 },
+      height: 500
+    };
+
+    window.Plotly.newPlot(plotRef.current, [trace], layout, { responsive: true });
+
+    return () => {
+      if (plotRef.current) {
+        window.Plotly.purge(plotRef.current);
+      }
+    };
+  }, [validPoints, param_names]);
 
   return (
     <div>
@@ -467,65 +542,18 @@ function Plot2D({ data, formData }) {
         Parameters: <strong>{param_names[0]}</strong> vs <strong>{param_names[1]}</strong>
       </p>
       <p className="text-xs text-gray-500 mb-4">
-        Axes show % deviation from baseline ({meanX.toLocaleString(undefined, { maximumFractionDigits: 2 })}, {meanY.toLocaleString(undefined, { maximumFractionDigits: 2 })})
+        Interactive 3D visualization with credit rating as vertical axis. Drag to rotate, scroll to zoom.
       </p>
-      <div className="relative h-96 border border-gray-200 rounded-lg p-8">
-        <svg width="100%" height="100%" viewBox="0 0 800 400" className="overflow-visible">
-          {/* Axes */}
-          <line x1="50" y1="350" x2="750" y2="350" stroke="#d1d5db" strokeWidth="2" />
-          <line x1="50" y1="350" x2="50" y2="50" stroke="#d1d5db" strokeWidth="2" />
-          
-          {/* Zero lines (baseline) */}
-          <line 
-            x1={50 + ((0 - minX) / rangeX) * 700}
-            y1="50" 
-            x2={50 + ((0 - minX) / rangeX) * 700}
-            y2="350"
-            stroke="#9ca3af" 
-            strokeWidth="1" 
-            strokeDasharray="5,5" 
-          />
-          <line 
-            x1="50"
-            y1={350 - ((0 - minY) / rangeY) * 300}
-            x2="750"
-            y2={350 - ((0 - minY) / rangeY) * 300}
-            stroke="#9ca3af" 
-            strokeWidth="1" 
-            strokeDasharray="5,5" 
-          />
-          
-          {/* Axis labels */}
-          <text x="400" y="390" textAnchor="middle" className="text-xs fill-gray-600">
-            {param_names[0]} (% deviation)
-          </text>
-          <text x="20" y="200" textAnchor="middle" className="text-xs fill-gray-600" transform="rotate(-90 20 200)">
-            {param_names[1]} (% deviation)
-          </text>
-
-          {/* Points */}
-          {validPoints.map((point, i) => {
-            const x = 50 + ((point.normX - minX) / rangeX) * 700;
-            const y = 350 - ((point.normY - minY) / rangeY) * 300;
-            return (
-              <g key={i}>
-                <circle cx={x} cy={y} r="6" fill="#8b5cf6" opacity="0.7" />
-                <text x={x} y={y - 10} textAnchor="middle" className="text-xs font-bold fill-gray-900">
-                  {point.rating}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+      <div ref={plotRef} className="w-full"></div>
     </div>
   );
 }
 
-// 3D Scatter Plot Component (simplified 2D projection)
+// 3D Scatter Plot Component (using Plotly interactive 3D)
 function Plot3D({ data, formData }) {
   const { param_names, timeseries } = data;
   const points = Object.values(timeseries);
+  const plotRef = useRef(null);
   
   if (points.length === 0) return <p className="text-gray-500">No data available</p>;
 
@@ -557,19 +585,77 @@ function Plot3D({ data, formData }) {
   );
   
   if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
-  
-  const normXValues = validPoints.map(p => p.normX);
-  const normYValues = validPoints.map(p => p.normY);
-  const normZValues = validPoints.map(p => p.normZ);
-  const minX = Math.min(...normXValues);
-  const maxX = Math.max(...normXValues);
-  const minY = Math.min(...normYValues);
-  const maxY = Math.max(...normYValues);
-  const minZ = Math.min(...normZValues);
-  const maxZ = Math.max(...normZValues);
-  const rangeX = maxX - minX || 1;
-  const rangeY = maxY - minY || 1;
-  const rangeZ = maxZ - minZ || 1;
+
+  // Map ratings to numeric values for coloring
+  const ratingMap = {
+    'CCC+': 1, 'CCC': 1, 'B-': 2, 'B': 3, 'B+': 4,
+    'BB-': 5, 'BB': 6, 'BB+': 7,
+    'BBB-': 8, 'BBB': 9, 'BBB+': 10,
+    'A-': 11, 'A': 12, 'A+': 13,
+    'AA-': 14, 'AA': 15, 'AA+': 16,
+    'AAA': 17
+  };
+
+  useEffect(() => {
+    if (!plotRef.current || typeof window.Plotly === 'undefined') return;
+
+    const trace = {
+      x: validPoints.map(p => p.normX),
+      y: validPoints.map(p => p.normY),
+      z: validPoints.map(p => p.normZ),
+      mode: 'markers',
+      type: 'scatter3d',
+      marker: {
+        size: 10,
+        color: validPoints.map(p => ratingMap[p.rating] || 5),
+        colorscale: [
+          [0, '#ef4444'],      // Red (low ratings)
+          [0.3, '#f97316'],    // Orange
+          [0.5, '#eab308'],    // Yellow
+          [0.7, '#22c55e'],    // Green
+          [1, '#10b981']       // Emerald (high ratings)
+        ],
+        showscale: true,
+        colorbar: {
+          title: 'Rating',
+          tickvals: [1, 3, 5, 7, 9, 11, 13, 15, 17],
+          ticktext: ['CCC+', 'B', 'BB-', 'BB+', 'BBB', 'A-', 'A+', 'AA+', 'AAA']
+        },
+        line: {
+          color: 'rgba(0,0,0,0.3)',
+          width: 1
+        }
+      },
+      text: validPoints.map(p => p.rating),
+      hovertemplate: 
+        `<b>${param_names[0]}:</b> %{x:.1f}%<br>` +
+        `<b>${param_names[1]}:</b> %{y:.1f}%<br>` +
+        `<b>${param_names[2]}:</b> %{z:.1f}%<br>` +
+        `<b>Rating:</b> %{text}<extra></extra>`
+    };
+
+    const layout = {
+      title: `${param_names[0]} vs ${param_names[1]} vs ${param_names[2]} (3D View)`,
+      scene: {
+        xaxis: { title: `${param_names[0]} (% deviation)`, zeroline: true, zerolinewidth: 2, zerolinecolor: 'gray' },
+        yaxis: { title: `${param_names[1]} (% deviation)`, zeroline: true, zerolinewidth: 2, zerolinecolor: 'gray' },
+        zaxis: { title: `${param_names[2]} (% deviation)`, zeroline: true, zerolinewidth: 2, zerolinecolor: 'gray' },
+        camera: {
+          eye: { x: 1.5, y: 1.5, z: 1.3 }
+        }
+      },
+      margin: { l: 0, r: 0, t: 40, b: 0 },
+      height: 600
+    };
+
+    window.Plotly.newPlot(plotRef.current, [trace], layout, { responsive: true });
+
+    return () => {
+      if (plotRef.current) {
+        window.Plotly.purge(plotRef.current);
+      }
+    };
+  }, [validPoints, param_names]);
 
   return (
     <div>
@@ -577,62 +663,9 @@ function Plot3D({ data, formData }) {
         Parameters: <strong>{param_names[0]}</strong>, <strong>{param_names[1]}</strong>, <strong>{param_names[2]}</strong>
       </p>
       <p className="text-xs text-gray-500 mb-4">
-        Axes show % deviation from baseline. Point size represents {param_names[2]} deviation.
+        Interactive 3D visualization. Points colored by credit rating. Drag to rotate, scroll to zoom.
       </p>
-      <div className="relative h-96 border border-gray-200 rounded-lg p-8">
-        <svg width="100%" height="100%" viewBox="0 0 800 400" className="overflow-visible">
-          {/* Axes */}
-          <line x1="50" y1="350" x2="750" y2="350" stroke="#d1d5db" strokeWidth="2" />
-          <line x1="50" y1="350" x2="50" y2="50" stroke="#d1d5db" strokeWidth="2" />
-          
-          {/* Zero lines (baseline) */}
-          <line 
-            x1={50 + ((0 - minX) / rangeX) * 700}
-            y1="50" 
-            x2={50 + ((0 - minX) / rangeX) * 700}
-            y2="350"
-            stroke="#9ca3af" 
-            strokeWidth="1" 
-            strokeDasharray="5,5" 
-          />
-          <line 
-            x1="50"
-            y1={350 - ((0 - minY) / rangeY) * 300}
-            x2="750"
-            y2={350 - ((0 - minY) / rangeY) * 300}
-            stroke="#9ca3af" 
-            strokeWidth="1" 
-            strokeDasharray="5,5" 
-          />
-          
-          {/* Axis labels */}
-          <text x="400" y="390" textAnchor="middle" className="text-xs fill-gray-600">
-            {param_names[0]} (% deviation)
-          </text>
-          <text x="20" y="200" textAnchor="middle" className="text-xs fill-gray-600" transform="rotate(-90 20 200)">
-            {param_names[1]} (% deviation)
-          </text>
-
-          {/* Points with size representing 3rd dimension */}
-          {validPoints.map((point, i) => {
-            const x = 50 + ((point.normX - minX) / rangeX) * 700;
-            const y = 350 - ((point.normY - minY) / rangeY) * 300;
-            const size = 4 + ((point.normZ - minZ) / rangeZ) * 12; // Size varies with 3rd dimension
-            return (
-              <g key={i}>
-                <circle cx={x} cy={y} r={size} fill="#10b981" opacity="0.6" />
-                <text x={x} y={y - size - 5} textAnchor="middle" className="text-xs font-bold fill-gray-900">
-                  {point.rating}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-        
-        <div className="mt-4 text-xs text-gray-500">
-          Note: Point size represents {param_names[2]} % deviation (larger = higher positive deviation)
-        </div>
-      </div>
+      <div ref={plotRef} className="w-full"></div>
     </div>
   );
 }
