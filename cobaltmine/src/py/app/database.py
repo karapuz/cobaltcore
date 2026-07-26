@@ -21,3 +21,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+"""
+cd backend
+
+sqlite3 users.db
+
+"""

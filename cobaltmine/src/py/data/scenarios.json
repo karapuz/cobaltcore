@@ -5,13 +5,13 @@
                 "id": "CR-2024-001",
                 "dateCreated": "2024-01-15",
                 "revenue": 45200000,
-                "ebitdaMargin": 23.5,
-                "fcfToDebt": 0.42,
+                "ebitdaMargin": 32,
+                "fcfToDebt": 0.1,
                 "debtToEbitda": 3.2,
-                "netDebtToEbitda": 2.8,
+                "netDebtToEbitda": 2.6,
                 "ebitdaToInterest": 4.5,
                 "roce": 18.3,
-                "interestCoverage": 3,
+                "interestCoverage": 30,
                 "creditRating": "BB+"
             },
             {
