@@ -12,6 +12,8 @@ import LoginModal from './components/LoginModal';
 import Portfolio from './components/Portfolio';
 import Scenarios from './components/Scenarios';
 import ScenarioSurface from './components/ScenarioSurface';
+import CreditScoreEstimator from './components/CreditScoreEstimator';
+import CreditScoreResults from './components/CreditScoreResults';
 import UnderConstruction from './components/UnderConstruction';
 import About from './components/About';
 import authService from './services/authService';
@@ -21,6 +23,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('home'); // 'home', 'portfolio', 'scenarios'
   const [scenarioData, setScenarioData] = useState(null); // For passing row data to scenario surface
+  const [creditScoreData, setCreditScoreData] = useState(null); // For passing credit score results
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -48,7 +51,12 @@ export default function App() {
 
   const handleNavigate = (page, data = null) => {
     setCurrentPage(page);
-    setScenarioData(data); // Store data for scenario surface
+    // Store data based on target page
+    if (page === 'scenario-surface') {
+      setScenarioData(data);
+    } else if (page === 'credit-score-results') {
+      setCreditScoreData(data);
+    }
   };
 
   // Render the appropriate page
@@ -93,6 +101,10 @@ export default function App() {
         return <Scenarios user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
       case 'scenario-surface':
         return <ScenarioSurface user={user} onBack={() => handleNavigate('scenarios')} initialData={scenarioData} />;
+      case 'credit-score-estimator':
+        return <CreditScoreEstimator user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
+      case 'credit-score-results':
+        return <CreditScoreResults user={user} onBack={() => handleNavigate('credit-score-estimator')} onNavigate={handleNavigate} resultData={creditScoreData} />;
       case 'about':
         return <About user={user} onBack={() => handleNavigate('home')} />;
       case 'home':

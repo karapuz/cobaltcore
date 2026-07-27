@@ -268,6 +268,21 @@ class AuthService {
     if (!response.ok) throw new Error(data.detail || 'Failed to fetch scenario surface response');
     return data;
   }
+
+  // ─────────────────────────────────────
+  // Credit Score Estimator methods
+  // ─────────────────────────────────────
+
+  async computeCreditScore(requestData) {
+    const response = await this._authFetch(`${API_URL}/credit-score/compute`, {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to compute credit score');
+    return data;
+  }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

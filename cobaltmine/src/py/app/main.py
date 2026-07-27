@@ -323,11 +323,8 @@ async def scenario_surface_response(
                                 if k.endswith('_lower') or k.endswith('_upper'))
         param_count = params_with_bounds // 2  # Each param has lower and upper
         
-        _1d = False
-        _2d = True
-
         # Generate mock response based on parameter count
-        if _1d or param_count == 1:
+        if param_count == 1:
             # Find which parameter has bounds
             param_name = None
             for key in request_params.keys():
@@ -341,7 +338,7 @@ async def scenario_surface_response(
                 "param_name": param_name or "revenue",
                 "timeseries": generate_1d_mock_data(param_name)
             }
-        elif _2d or param_count == 2:
+        elif param_count == 2:
             surface_data = {
                 "status": "completed",
                 "plot_type": "2D",
@@ -360,7 +357,6 @@ async def scenario_surface_response(
         data["scenario_surfaces"][response_id] = surface_data
         save_scenario_surfaces(data)
     
-    print(f"surface_data -> {surface_data}")
     return surface_data
 
 def generate_1d_mock_data(param_name):
@@ -377,8 +373,8 @@ def generate_2d_mock_data():
     ratings = ["BB", "BB+", "BBB-", "BB+", "BBB-", "BBB", "BBB-", "BBB", "BBB+", "BBB", "BBB+", "A-"]
     timeseries = {}
     idx = 0
-    for rev in [50000000, 40000000,   55000000, 45000000,]:
-        for ebitda in [26.0, 18.0, 22.0, 19.0,]:
+    for rev in [40000000, 45000000, 50000000, 55000000]:
+        for ebitda in [18.0, 22.0, 26.0]:
             timeseries[str(idx)] = [rev, ebitda, ratings[idx % len(ratings)]]
             idx += 1
             if idx >= 12:
@@ -404,6 +400,196 @@ def generate_3d_mock_data():
         if idx >= 12:
             break
     return timeseries
+
+# ─────────────────────────────────────
+# Credit Score Estimator endpoints
+# ─────────────────────────────────────
+
+# Industry weights by sector
+INDUSTRY_WEIGHTS = {
+    'default': {
+        'revenueScale': 15.0,
+        'ebitdaMargin': 15.0,
+        'fcfToDebt': 25.0,
+        'debtToEbitda': 25.0,
+        'netDebtToEbitda': 10.0,
+        'ebitdaToInterest': 10.0
+    }
+}
+
+def calculate_factor_score(value, factor_type):
+    """Calculate letter score based on factor value and type"""
+    # Simplified scoring logic - in real implementation would be more sophisticated
+    if factor_type in ['revenueScale']:
+        if value >= 100: return 'AA'
+        if value >= 80: return 'A'
+        if value >= 60: return 'BBB'
+        if value >= 40: return 'BB'
+        if value >= 20: return 'B'
+        return 'CCC'
+    elif factor_type in ['ebitdaMargin']:
+        if value >= 25: return 'AA'
+        if value >= 20: return 'A'
+        if value >= 15: return 'BBB'
+        if value >= 10: return 'BB'
+        if value >= 5: return 'B'
+        return 'CCC'
+    elif factor_type in ['fcfToDebt']:
+        if value >= 30: return 'A'
+        if value >= 20: return 'BBB-'
+        if value >= 15: return 'BB+'
+        if value >= 10: return 'BB'
+        return 'B'
+    elif factor_type in ['debtToEbitda', 'netDebtToEbitda']:
+        if value <= 1.0: return 'AA'
+        if value <= 2.0: return 'A'
+        if value <= 3.0: return 'BBB'
+        if value <= 4.0: return 'BB'
+        if value <= 5.0: return 'B'
+        return 'CCC'
+    elif factor_type in ['ebitdaToInterest']:
+        if value >= 8: return 'AA'
+        if value >= 5: return 'A'
+        if value >= 3: return 'BBB'
+        if value >= 2: return 'BB'
+        return 'B'
+    return 'BB'
+
+def calculate_compass_rating(factor_scores, weights):
+    """Calculate overall Compass rating from factor scores"""
+    rating_values = {
+        'AAA': 21, 'AA+': 20, 'AA': 19, 'AA-': 18,
+        'A+': 17, 'A': 16, 'A-': 15,
+        'BBB+': 14, 'BBB': 13, 'BBB-': 12,
+        'BB+': 11, 'BB': 10, 'BB-': 9,
+        'B+': 8, 'B': 7, 'B-': 6,
+        'CCC+': 5, 'CCC': 4, 'CCC-': 3,
+        'CC': 2, 'C': 1, 'D': 0
+    }
+    
+    value_ratings = {v: k for k, v in rating_values.items()}
+    
+    weighted_sum = 0
+    total_weight = 0
+    
+    for factor, score in factor_scores.items():
+        if factor in weights:
+            weight = weights[factor]
+            rating_val = rating_values.get(score, 10)
+            weighted_sum += rating_val * weight
+            total_weight += weight
+    
+    if total_weight > 0:
+        avg_rating = weighted_sum / total_weight
+        # Find closest rating
+        closest_val = min(rating_values.values(), key=lambda x: abs(x - avg_rating))
+        return value_ratings.get(closest_val, 'BB')
+    
+    return 'BB'
+
+@app.post("/api/credit-score/compute")
+async def compute_credit_score(
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Compute credit score based on financial inputs.
+    Returns detailed factor analysis and final Compass rating.
+    """
+    sector = request_data.get('sector', 'Industrials')
+    industry = request_data.get('industry', 'General')
+    financial_data = request_data.get('financialData', {})
+    
+    # Get industry weights (or use default)
+    weights = INDUSTRY_WEIGHTS.get(sector, INDUSTRY_WEIGHTS['default'])
+    
+    # Calculate weighted metrics (average across time periods)
+    def get_weighted_average(key):
+        vals = []
+        for period in ['trailing12', 'oneYearForward', 'twoYearsForward']:
+            val = financial_data.get(f'{key}_{period}')
+            if val is not None:
+                # Weight: 25% trailing, 50% 1yr forward, 25% 2yr forward
+                if period == 'oneYearForward':
+                    vals.extend([val, val])  # Double weight for 1yr forward
+                else:
+                    vals.append(val)
+        return sum(vals) / len(vals) if vals else 0
+    
+    revenue = get_weighted_average('revenueScale')
+    ebitda = get_weighted_average('ebitda')
+    total_debt = get_weighted_average('totalDebt')
+    net_debt = get_weighted_average('netDebt')
+    fcf = get_weighted_average('freeCashFlow')
+    
+    # Calculate derived metrics
+    ebitda_margin = (ebitda / revenue * 100) if revenue > 0 else 0
+    fcf_to_debt = (fcf / total_debt * 100) if total_debt > 0 else 0
+    debt_to_ebitda = (total_debt / ebitda) if ebitda > 0 else 0
+    net_debt_to_ebitda = (net_debt / ebitda) if ebitda > 0 else 0
+    # Assume interest is 5% of total debt for demo
+    interest = total_debt * 0.05
+    ebitda_to_interest = (ebitda / interest) if interest > 0 else 0
+    
+    # Calculate factor scores
+    factor_scores = {
+        'revenueScale': calculate_factor_score(revenue, 'revenueScale'),
+        'ebitdaMargin': calculate_factor_score(ebitda_margin, 'ebitdaMargin'),
+        'fcfToDebt': calculate_factor_score(fcf_to_debt, 'fcfToDebt'),
+        'debtToEbitda': calculate_factor_score(debt_to_ebitda, 'debtToEbitda'),
+        'netDebtToEbitda': calculate_factor_score(net_debt_to_ebitda, 'netDebtToEbitda'),
+        'ebitdaToInterest': calculate_factor_score(ebitda_to_interest, 'ebitdaToInterest'),
+    }
+    
+    # Calculate overall Compass rating
+    compass_rating = calculate_compass_rating(factor_scores, weights)
+    
+    # Build response
+    factors = [
+        {
+            'name': 'Revenue Scale ($ millions)',
+            'weight': f"{weights['revenueScale']:.2f}%",
+            'metric': f"${revenue:.2f}M",
+            'score': factor_scores['revenueScale']
+        },
+        {
+            'name': 'EBITDA Margin',
+            'weight': f"{weights['ebitdaMargin']:.2f}%",
+            'metric': f"{ebitda_margin:.0f}%",
+            'score': factor_scores['ebitdaMargin']
+        },
+        {
+            'name': 'Free Cash Flow / Debt',
+            'weight': f"{weights['fcfToDebt']:.2f}%",
+            'metric': f"{fcf_to_debt:.0f}%",
+            'score': factor_scores['fcfToDebt']
+        },
+        {
+            'name': 'Total Debt / EBITDA',
+            'weight': f"{weights['debtToEbitda']:.2f}%",
+            'metric': f"{debt_to_ebitda:.1f} x",
+            'score': factor_scores['debtToEbitda']
+        },
+        {
+            'name': 'Net Debt / EBITDA',
+            'weight': f"{weights['netDebtToEbitda']:.2f}%",
+            'metric': f"{net_debt_to_ebitda:.1f} x",
+            'score': factor_scores['netDebtToEbitda']
+        },
+        {
+            'name': 'EBITDA / Interest',
+            'weight': f"{weights['ebitdaToInterest']:.2f}%",
+            'metric': f"{ebitda_to_interest:.1f} x",
+            'score': factor_scores['ebitdaToInterest']
+        },
+    ]
+    
+    return {
+        'sector': sector,
+        'industry': industry,
+        'compassRating': compass_rating,
+        'factors': factors
+    }
 
 # ─────────────────────────────────────
 # Error handlers

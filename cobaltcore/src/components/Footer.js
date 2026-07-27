@@ -8,32 +8,32 @@ export default function Footer() {
           <div>
             <h3 className="font-bold mb-6 text-white">Invest</h3>
             <ul className="space-y-3 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white transition">Getting Started</a></li>
-              <li><a href="#" className="hover:text-white transition">Asset Classes</a></li>
-              <li><a href="#" className="hover:text-white transition">Performance</a></li>
+              <li><button className="hover:text-white transition text-left">Getting Started</button></li>
+              <li><button className="hover:text-white transition text-left">Asset Classes</button></li>
+              <li><button className="hover:text-white transition text-left">Performance</button></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold mb-6 text-white">About</h3>
             <ul className="space-y-3 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white transition">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition">Contact</a></li>
+              <li><button className="hover:text-white transition text-left">About Us</button></li>
+              <li><button className="hover:text-white transition text-left">Careers</button></li>
+              <li><button className="hover:text-white transition text-left">Contact</button></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold mb-6 text-white">Resources</h3>
             <ul className="space-y-3 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white transition">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition">FAQ</a></li>
-              <li><a href="#" className="hover:text-white transition">Glossary</a></li>
+              <li><button className="hover:text-white transition text-left">Blog</button></li>
+              <li><button className="hover:text-white transition text-left">FAQ</button></li>
+              <li><button className="hover:text-white transition text-left">Glossary</button></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold mb-6 text-white">Legal</h3>
             <ul className="space-y-3 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white transition">Terms of Use</a></li>
-              <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+              <li><button className="hover:text-white transition text-left">Terms of Use</button></li>
+              <li><button className="hover:text-white transition text-left">Privacy Policy</button></li>
             </ul>
           </div>
         </div>

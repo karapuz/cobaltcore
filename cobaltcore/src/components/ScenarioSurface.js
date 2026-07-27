@@ -439,37 +439,9 @@ function Plot1D({ data, formData }) {
 // 2D Scatter Plot Component (using Plotly 3D surface with rating as Z-axis)
 function Plot2D({ data, formData }) {
   const { param_names, timeseries } = data;
-  const points = Object.values(timeseries);
+  const points = Object.values(timeseries || {});
   const plotRef = useRef(null);
   
-  if (points.length === 0) return <p className="text-gray-500">No data available</p>;
-
-  // Get mean values from formData (the baseline scenario)
-  const xValues = points.map(p => p[0]);
-  const yValues = points.map(p => p[1]);
-  const meanX = formData[param_names[0]] || xValues.reduce((sum, v) => sum + v, 0) / xValues.length;
-  const meanY = formData[param_names[1]] || yValues.reduce((sum, v) => sum + v, 0) / yValues.length;
-  
-  // Prevent division by zero
-  if (meanX === 0 || meanY === 0) {
-    return <p className="text-red-500">Cannot normalize: baseline values contain zero</p>;
-  }
-  
-  // Normalize as percentage deviation from mean
-  const normalizedPoints = points.map(p => ({
-    normX: ((p[0] - meanX) / meanX) * 100,
-    normY: ((p[1] - meanY) / meanY) * 100,
-    rating: p[2]
-  }));
-  
-  // Filter out any invalid points
-  const validPoints = normalizedPoints.filter(p => 
-    !isNaN(p.normX) && !isNaN(p.normY) &&
-    isFinite(p.normX) && isFinite(p.normY)
-  );
-  
-  if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
-
   // Map ratings to numeric values for Z-axis
   const ratingMap = {
     'CCC+': 1, 'CCC': 1, 'B-': 2, 'B': 3, 'B+': 4,
@@ -480,8 +452,27 @@ function Plot2D({ data, formData }) {
     'AAA': 17
   };
 
+  // Calculate values (with safety checks)
+  const xValues = points.map(p => p[0]);
+  const yValues = points.map(p => p[1]);
+  const meanX = (param_names && formData[param_names[0]]) || (xValues.length > 0 ? xValues.reduce((sum, v) => sum + v, 0) / xValues.length : 1);
+  const meanY = (param_names && formData[param_names[1]]) || (yValues.length > 0 ? yValues.reduce((sum, v) => sum + v, 0) / yValues.length : 1);
+  
+  // Normalize as percentage deviation from mean
+  const normalizedPoints = (meanX !== 0 && meanY !== 0) ? points.map(p => ({
+    normX: ((p[0] - meanX) / meanX) * 100,
+    normY: ((p[1] - meanY) / meanY) * 100,
+    rating: p[2]
+  })) : [];
+  
+  // Filter out any invalid points
+  const validPoints = normalizedPoints.filter(p => 
+    !isNaN(p.normX) && !isNaN(p.normY) &&
+    isFinite(p.normX) && isFinite(p.normY)
+  );
+
   useEffect(() => {
-    if (!plotRef.current || typeof window.Plotly === 'undefined') return;
+    if (!plotRef.current || typeof window.Plotly === 'undefined' || validPoints.length === 0) return;
 
     const trace = {
       x: validPoints.map(p => p.normX),
@@ -493,11 +484,11 @@ function Plot2D({ data, formData }) {
         size: 8,
         color: validPoints.map(p => ratingMap[p.rating] || 5),
         colorscale: [
-          [0, '#ef4444'],      // Red (low ratings)
-          [0.3, '#f97316'],    // Orange
-          [0.5, '#eab308'],    // Yellow
-          [0.7, '#22c55e'],    // Green
-          [1, '#10b981']       // Emerald (high ratings)
+          [0, '#ef4444'],
+          [0.3, '#f97316'],
+          [0.5, '#eab308'],
+          [0.7, '#22c55e'],
+          [1, '#10b981']
         ],
         showscale: true,
         colorbar: {
@@ -534,7 +525,12 @@ function Plot2D({ data, formData }) {
         window.Plotly.purge(plotRef.current);
       }
     };
-  }, [validPoints, param_names]);
+  }, [validPoints, param_names, ratingMap]);
+
+  // Early returns AFTER hooks
+  if (points.length === 0) return <p className="text-gray-500">No data available</p>;
+  if (meanX === 0 || meanY === 0) return <p className="text-red-500">Cannot normalize: baseline values contain zero</p>;
+  if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
 
   return (
     <div>
@@ -552,39 +548,8 @@ function Plot2D({ data, formData }) {
 // 3D Scatter Plot Component (using Plotly interactive 3D)
 function Plot3D({ data, formData }) {
   const { param_names, timeseries } = data;
-  const points = Object.values(timeseries);
+  const points = Object.values(timeseries || {});
   const plotRef = useRef(null);
-  
-  if (points.length === 0) return <p className="text-gray-500">No data available</p>;
-
-  // Get mean values from formData (the baseline scenario)
-  const xValues = points.map(p => p[0]);
-  const yValues = points.map(p => p[1]);
-  const zValues = points.map(p => p[2]);
-  const meanX = formData[param_names[0]] || xValues.reduce((sum, v) => sum + v, 0) / xValues.length;
-  const meanY = formData[param_names[1]] || yValues.reduce((sum, v) => sum + v, 0) / yValues.length;
-  const meanZ = formData[param_names[2]] || zValues.reduce((sum, v) => sum + v, 0) / zValues.length;
-  
-  // Prevent division by zero
-  if (meanX === 0 || meanY === 0 || meanZ === 0) {
-    return <p className="text-red-500">Cannot normalize: baseline values contain zero</p>;
-  }
-  
-  // Normalize as percentage deviation from mean
-  const normalizedPoints = points.map(p => ({
-    normX: ((p[0] - meanX) / meanX) * 100,
-    normY: ((p[1] - meanY) / meanY) * 100,
-    normZ: ((p[2] - meanZ) / meanZ) * 100,
-    rating: p[3]
-  }));
-  
-  // Filter out any invalid points
-  const validPoints = normalizedPoints.filter(p => 
-    !isNaN(p.normX) && !isNaN(p.normY) && !isNaN(p.normZ) &&
-    isFinite(p.normX) && isFinite(p.normY) && isFinite(p.normZ)
-  );
-  
-  if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
 
   // Map ratings to numeric values for coloring
   const ratingMap = {
@@ -596,8 +561,30 @@ function Plot3D({ data, formData }) {
     'AAA': 17
   };
 
+  // Calculate values (with safety checks)
+  const xValues = points.map(p => p[0]);
+  const yValues = points.map(p => p[1]);
+  const zValues = points.map(p => p[2]);
+  const meanX = (param_names && formData[param_names[0]]) || (xValues.length > 0 ? xValues.reduce((sum, v) => sum + v, 0) / xValues.length : 1);
+  const meanY = (param_names && formData[param_names[1]]) || (yValues.length > 0 ? yValues.reduce((sum, v) => sum + v, 0) / yValues.length : 1);
+  const meanZ = (param_names && formData[param_names[2]]) || (zValues.length > 0 ? zValues.reduce((sum, v) => sum + v, 0) / zValues.length : 1);
+  
+  // Normalize as percentage deviation from mean
+  const normalizedPoints = (meanX !== 0 && meanY !== 0 && meanZ !== 0) ? points.map(p => ({
+    normX: ((p[0] - meanX) / meanX) * 100,
+    normY: ((p[1] - meanY) / meanY) * 100,
+    normZ: ((p[2] - meanZ) / meanZ) * 100,
+    rating: p[3]
+  })) : [];
+  
+  // Filter out any invalid points
+  const validPoints = normalizedPoints.filter(p => 
+    !isNaN(p.normX) && !isNaN(p.normY) && !isNaN(p.normZ) &&
+    isFinite(p.normX) && isFinite(p.normY) && isFinite(p.normZ)
+  );
+
   useEffect(() => {
-    if (!plotRef.current || typeof window.Plotly === 'undefined') return;
+    if (!plotRef.current || typeof window.Plotly === 'undefined' || validPoints.length === 0) return;
 
     const trace = {
       x: validPoints.map(p => p.normX),
@@ -609,11 +596,11 @@ function Plot3D({ data, formData }) {
         size: 10,
         color: validPoints.map(p => ratingMap[p.rating] || 5),
         colorscale: [
-          [0, '#ef4444'],      // Red (low ratings)
-          [0.3, '#f97316'],    // Orange
-          [0.5, '#eab308'],    // Yellow
-          [0.7, '#22c55e'],    // Green
-          [1, '#10b981']       // Emerald (high ratings)
+          [0, '#ef4444'],
+          [0.3, '#f97316'],
+          [0.5, '#eab308'],
+          [0.7, '#22c55e'],
+          [1, '#10b981']
         ],
         showscale: true,
         colorbar: {
@@ -655,7 +642,12 @@ function Plot3D({ data, formData }) {
         window.Plotly.purge(plotRef.current);
       }
     };
-  }, [validPoints, param_names]);
+  }, [validPoints, param_names, ratingMap]);
+
+  // Early returns AFTER hooks
+  if (points.length === 0) return <p className="text-gray-500">No data available</p>;
+  if (meanX === 0 || meanY === 0 || meanZ === 0) return <p className="text-red-500">Cannot normalize: baseline values contain zero</p>;
+  if (validPoints.length === 0) return <p className="text-red-500">No valid data points after normalization</p>;
 
   return (
     <div>
