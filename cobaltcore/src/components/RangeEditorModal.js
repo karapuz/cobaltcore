@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-// Pillar type: true = Increasing (higher value = better), false = Decreasing
-const PILLAR_TYPES = {
-  revenue_scale: true,
-  ebitda_margin: true,
-  fcf_debt: true,
-  td_ebitda: false,
-  nd_ebitda: false,
-  ebitda_interest: true,
-  dscr: true
+// Numeric rank to letter rating mapping
+const RANK_TO_RATING = {
+  0: "AAA",
+  1: "AA+",
+  2: "AA",
+  3: "AA-",
+  4: "A+",
+  5: "A",
+  6: "A-",
+  7: "BBB+",
+  8: "BBB",
 };
+
+function getRatingColor(rating) {
+  if (!rating) return 'bg-gray-100 text-gray-800';
+  if (rating.startsWith('AAA')) return 'bg-emerald-100 text-emerald-800';
+  if (rating.startsWith('AA')) return 'bg-green-100 text-green-800';
+  if (rating.startsWith('A')) return 'bg-lime-100 text-lime-800';
+  if (rating.startsWith('BBB')) return 'bg-yellow-100 text-yellow-800';
+  return 'bg-orange-100 text-orange-800';
+}
 
 export default function RangeEditorModal({ pillar, currentRanges, onSave, onClose }) {
   const [ranges, setRanges] = useState([...currentRanges]);
-  const isIncreasing = PILLAR_TYPES[pillar.id] !== false;
+  const isIncreasing = pillar.is_increasing !== false;
 
   const handleRangeChange = (index, value) => {
     const newRanges = [...ranges];
@@ -25,6 +36,8 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
   const handleSave = () => {
     onSave(ranges);
   };
+
+  const getRating = (idx) => RANK_TO_RATING[idx] || 'BBB-';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -45,7 +58,7 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
         {/* Current Value Indicator */}
         <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
           <p className="text-sm text-blue-800">
-            Current Value: <span className="font-bold">{pillar.formatted_value}</span> → Rank: <span className="font-bold">{pillar.rank}</span>
+            Current Value: <span className="font-bold">{pillar.formatted_value}</span> → Rating: <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${getRatingColor(pillar.rank)}`}>{pillar.rank}</span>
           </p>
         </div>
 
@@ -54,7 +67,7 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
           <table className="w-full">
             <thead>
               <tr className="text-sm text-gray-500">
-                <th className="text-left py-2">Rank</th>
+                <th className="text-left py-2">Rating</th>
                 <th className="text-left py-2">Range</th>
                 <th className="text-left py-2">Breakpoint</th>
               </tr>
@@ -62,7 +75,11 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
             <tbody>
               {ranges.map((breakpoint, idx) => (
                 <tr key={idx} className="border-t border-gray-100">
-                  <td className="py-2 font-bold text-gray-900">{idx}</td>
+                  <td className="py-2">
+                    <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(getRating(idx))}`}>
+                      {getRating(idx)}
+                    </span>
+                  </td>
                   <td className="py-2 text-sm text-gray-600">
                     {isIncreasing
                       ? (idx === 0 ? `≥ ${breakpoint}` : `${ranges[idx]} - ${ranges[idx - 1]}`)
@@ -81,7 +98,11 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
                 </tr>
               ))}
               <tr className="border-t border-gray-100">
-                <td className="py-2 font-bold text-gray-900">{ranges.length}</td>
+                <td className="py-2">
+                  <span className="inline-block px-2 py-1 rounded text-xs font-bold bg-orange-100 text-orange-800">
+                    BBB-
+                  </span>
+                </td>
                 <td className="py-2 text-sm text-gray-600">
                   {isIncreasing ? `< ${ranges[ranges.length - 1]}` : `> ${ranges[ranges.length - 1]}`}
                 </td>

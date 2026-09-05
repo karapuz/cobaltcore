@@ -5,12 +5,21 @@ import RangeEditorModal from './RangeEditorModal';
 
 function getRatingColor(rating) {
   if (!rating) return 'bg-gray-100 text-gray-800';
-  if (rating.startsWith('AAA') || rating.startsWith('AA')) return 'bg-green-100 text-green-800';
-  if (rating.startsWith('A')) return 'bg-green-50 text-green-700';
+  if (rating.startsWith('AAA')) return 'bg-emerald-100 text-emerald-800';
+  if (rating.startsWith('AA')) return 'bg-green-100 text-green-800';
+  if (rating.startsWith('A')) return 'bg-lime-100 text-lime-800';
   if (rating.startsWith('BBB')) return 'bg-yellow-100 text-yellow-800';
   if (rating.startsWith('BB')) return 'bg-orange-100 text-orange-800';
   if (rating.startsWith('B')) return 'bg-orange-200 text-orange-900';
   return 'bg-red-100 text-red-800';
+}
+
+function getRatingBadge(rating) {
+  return (
+    <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(rating)}`}>
+      {rating}
+    </span>
+  );
 }
 
 export default function TickerAnalysis({ user, onBack, analysisData }) {
@@ -117,13 +126,13 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       `Credit Analysis: ${ticker.ticker_name} (${ticker.ticker_id})`,
       `Index: ${index.index_name}`,
       '',
-      'Pillar,Value,Range,Rank,Weight,Score',
+      'Pillar,Value,Rank,Projected Value,Projected Rank,Weight',
       ...data.pillars.map(p =>
-        `${p.name},${p.formatted_value},${p.range_display},${p.rank},${(p.weight * 100).toFixed(0)}%,${(p.rank * p.weight).toFixed(2)}`
+        `${p.name},${p.formatted_value},${p.rank},${p.projected_formatted_value},${p.projected_rank},${(p.weight * 100).toFixed(0)}%`
       ),
       '',
-      `Total Score,${data.total_score.toFixed(2)}`,
-      `Compass Rating,${data.compass_rating}`
+      `Compass Rating,${data.compass_rating}`,
+      `Projected Rating,${data.projected_compass_rating}`
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -172,7 +181,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
@@ -184,22 +193,22 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
         ) : data ? (
           <>
             {/* Results Table */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6 overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-900 text-white">
-                    <th className="text-left px-6 py-4 font-bold text-sm">PILLAR</th>
-                    <th className="text-right px-6 py-4 font-bold text-sm">VALUE</th>
-                    <th className="text-center px-6 py-4 font-bold text-sm">RANGE</th>
-                    <th className="text-center px-6 py-4 font-bold text-sm">RANK</th>
-                    <th className="text-center px-6 py-4 font-bold text-sm">WEIGHT</th>
-                    <th className="text-right px-6 py-4 font-bold text-sm">SCORE</th>
+                    <th className="text-left px-4 py-4 font-bold text-sm">PILLAR</th>
+                    <th className="text-right px-4 py-4 font-bold text-sm">VALUE</th>
+                    <th className="text-center px-4 py-4 font-bold text-sm">RANK</th>
+                    <th className="text-right px-4 py-4 font-bold text-sm bg-blue-900">PROJECTED</th>
+                    <th className="text-center px-4 py-4 font-bold text-sm bg-blue-900">PROJ RANK</th>
+                    <th className="text-center px-4 py-4 font-bold text-sm">WEIGHT</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.pillars.map((pillar, idx) => (
                     <tr key={pillar.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-4 font-semibold text-gray-900">
+                      <td className="px-4 py-4 font-semibold text-gray-900">
                         <div className="flex items-center gap-2">
                           {pillar.name}
                           {editMode && (
@@ -213,10 +222,11 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right font-mono">{pillar.formatted_value}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-600">{pillar.range_display}</td>
-                      <td className="px-6 py-4 text-center font-bold">{pillar.rank}</td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-4 text-right font-mono text-sm">{pillar.formatted_value}</td>
+                      <td className="px-4 py-4 text-center">{getRatingBadge(pillar.rank)}</td>
+                      <td className="px-4 py-4 text-right font-mono text-sm bg-blue-50">{pillar.projected_formatted_value}</td>
+                      <td className="px-4 py-4 text-center bg-blue-50">{getRatingBadge(pillar.projected_rank)}</td>
+                      <td className="px-4 py-4 text-center">
                         {editMode ? (
                           <input
                             type="number"
@@ -231,32 +241,35 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                           `${Math.round(pillar.weight * 100)}%`
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right font-mono">
-                        {(pillar.rank * pillar.weight).toFixed(2)}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-100 font-bold">
-                    <td colSpan="4" className="px-6 py-4 text-right">TOTAL</td>
-                    <td className={`px-6 py-4 text-center ${editMode && !weightsValid ? 'text-red-600' : ''}`}>
+                    <td colSpan="5" className="px-4 py-4 text-right">TOTAL WEIGHT</td>
+                    <td className={`px-4 py-4 text-center ${editMode && !weightsValid ? 'text-red-600' : ''}`}>
                       {editMode ? `${Math.round(totalWeight * 100)}%` : '100%'}
                     </td>
-                    <td className="px-6 py-4 text-right font-mono">{data.total_score.toFixed(2)}</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
 
-            {/* Compass Rating */}
-            <div className="flex justify-center mb-8">
-              <div className="bg-white rounded-lg border border-gray-200 px-12 py-6 text-center">
+            {/* Compass Ratings - Actual and Projected side by side */}
+            <div className="flex justify-center gap-8 mb-8">
+              <div className="bg-white rounded-lg border border-gray-200 px-10 py-6 text-center">
                 <p className="text-sm text-gray-500 mb-2">COMPASS RATING</p>
                 <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.compass_rating)}`}>
                   {data.compass_rating}
                 </span>
                 <p className="text-sm text-gray-500 mt-2">Score: {data.total_score.toFixed(2)}</p>
+              </div>
+              <div className="bg-blue-50 rounded-lg border border-blue-200 px-10 py-6 text-center">
+                <p className="text-sm text-blue-600 mb-2">PROJECTED RATING</p>
+                <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.projected_compass_rating)}`}>
+                  {data.projected_compass_rating}
+                </span>
+                <p className="text-sm text-blue-600 mt-2">Score: {data.projected_total_score.toFixed(2)}</p>
               </div>
             </div>
 

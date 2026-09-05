@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.data.database import engine, Base
 from app.routers import users
@@ -33,7 +34,7 @@ app.include_router(portfolio.router, prefix="/api", tags=["Portfolio"])
 app.include_router(scenarios.router, prefix="/api", tags=["Scenarios"])
 app.include_router(scenario_surface.router, prefix="/api", tags=["Scenario Surface"])
 app.include_router(credit_score.router, prefix="/api", tags=["Credit Score"])
-app.include_router(index_analysis.router, prefix="/api/v0", tags=["Index Analysis"])
+app.include_router(index_analysis.router, prefix="/api", tags=["Index Analysis"])
 
 # ─────────────────────────────────────
 # Health check
@@ -47,11 +48,11 @@ async def health_check():
 # ─────────────────────────────────────
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
-    return {"error": "Endpoint not found"}
+    return JSONResponse(status_code=404, content={"error": "Endpoint not found"})
 
 @app.exception_handler(500)
 async def internal_error_handler(request, exc):
-    return {"error": "Internal server error"}
+    return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 if __name__ == "__main__":
     import uvicorn
