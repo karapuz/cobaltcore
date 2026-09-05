@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity, TrendingUp, Calculator } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity, TrendingUp, Calculator, LineChart } from 'lucide-react';
 
 export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -347,6 +347,21 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                           <p className="text-xs text-gray-500">Estimate Credit Ratings</p>
                         </div>
                       </button>
+                      <button
+                        onClick={() => {
+                          onNavigate('index-selector');
+                          setServicesMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-3"
+                      >
+                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                          <LineChart className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">Index Analysis</p>
+                          <p className="text-xs text-gray-500">Analyze Index Constituents</p>
+                        </div>
+                      </button>
                     </div>
                   </>
                 )}
@@ -593,6 +608,21 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                     <div className="text-left">
                       <p className="text-sm font-medium text-gray-900">Credit Score Estimator</p>
                       <p className="text-xs text-gray-500">Estimate Credit Ratings</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onNavigate('index-selector');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  >
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <LineChart className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">Index Analysis</p>
+                      <p className="text-xs text-gray-500">Analyze Index Constituents</p>
                     </div>
                   </button>
                 </div>

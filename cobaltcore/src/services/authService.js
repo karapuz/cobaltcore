@@ -282,6 +282,54 @@ class AuthService {
     if (!response.ok) throw new Error(data.detail || 'Failed to compute credit score');
     return data;
   }
+
+  // ─────────────────────────────────────
+  // Index Analysis methods
+  // ─────────────────────────────────────
+
+  async getIndices(effectiveDate = null) {
+    const params = new URLSearchParams();
+    if (effectiveDate) params.append('effective_date', effectiveDate);
+    const response = await this._authFetch(`${API_URL}/v0/index/name/historical?${params}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch indices');
+    return data;
+  }
+
+  async getIndexTickers(indexId, effectiveDate = null) {
+    const params = new URLSearchParams();
+    params.append('index_id', indexId);
+    if (effectiveDate) params.append('effective_date', effectiveDate);
+    const response = await this._authFetch(`${API_URL}/v0/index/value/historical?${params}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch tickers');
+    return data;
+  }
+
+  async getPillarValues(tickerId, effectiveDate = null) {
+    const params = new URLSearchParams();
+    params.append('ticker_id', tickerId);
+    if (effectiveDate) params.append('effective_date', effectiveDate);
+    const response = await this._authFetch(`${API_URL}/v0/pillar/values/historical?${params}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch pillar values');
+    return data;
+  }
+
+  async recalculatePillars(tickerId, weights, ranges, effectiveDate = null) {
+    const response = await this._authFetch(`${API_URL}/v0/pillar/recalculate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ticker_id: tickerId,
+        effective_date: effectiveDate,
+        weights,
+        ranges
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to recalculate');
+    return data;
+  }
 }
 
 const authService = new AuthService();

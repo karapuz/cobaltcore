@@ -24,7 +24,5 @@ def get_db():
 
 """
 cd backend
-
 sqlite3 users.db
-
 """

@@ -1,0 +1,46 @@
+We are adding a few more pages
+- there will be a drop down with a collection of indices (for now it will have only Down Jones)
+    /v0/index/names/historical
+    - /v0/index/names/historical will take the following arguments:
+        - effective_date
+    - /v0/index/names/historical will return json with the following keys:
+        - index_name, index_id
+    - index_name values will be used to populate corresponding screen values
+    - index_id will be used for the consecutive calls
+
+- once client selects a porfolio, the following api will be called:
+    /v0/index/values/historical
+    - /v0/index/values/historical will take the following arguments:
+        - effective_date
+        - index_name
+        - index_id
+    - /v0/index/values/historical will return json with the following lists:
+        - ticker_name, ticker_id
+
+client will be presented with the scrollable list of all 
+    tickers that belong to that index
+- once client clicks/selects the ticker, he will be presented with a screen that shows all relevant pillars
+- pillars will contain following names:
+    - Revenue Scale
+    - EBITDA Margin
+    - Free Cash Flow / Debt
+    - Total Debt / EBITDA
+    - Net Debt / EBITDA
+    - EBITDA / Interest
+    - Debt Service Coverage Ratio 
+- all pillars will be populated by calling an api with the following signature
+    /v0/pillar/values/historical
+    - /v0/pillar/values/historical will take the following arguments:
+        - effective_date
+        - ticker
+    - /v0/pillar/values/historical will return json with the following keys:
+        - revenue_scale
+        - ebitda_margin
+        - fcf_debt
+        - td_ebitda
+        - nd_ebitda
+        - ebitda_interest
+        - dscr
+    - these values will be used to populate corresponding screen values
+
+- page 1 will allow client to select a public equity ticker from a portfolio

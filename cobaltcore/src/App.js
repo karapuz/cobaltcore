@@ -14,6 +14,8 @@ import Scenarios from './components/Scenarios';
 import ScenarioSurface from './components/ScenarioSurface';
 import CreditScoreEstimator from './components/CreditScoreEstimator';
 import CreditScoreResults from './components/CreditScoreResults';
+import IndexSelector from './components/IndexSelector';
+import TickerAnalysis from './components/TickerAnalysis';
 import UnderConstruction from './components/UnderConstruction';
 import About from './components/About';
 import authService from './services/authService';
@@ -21,16 +23,17 @@ import authService from './services/authService';
 export default function App() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'portfolio', 'scenarios'
-  const [scenarioData, setScenarioData] = useState(null); // For passing row data to scenario surface
-  const [creditScoreData, setCreditScoreData] = useState(null); // For passing credit score results
+  const [currentPage, setCurrentPage] = useState('home');
+  const [scenarioData, setScenarioData] = useState(null);
+  const [creditScoreData, setCreditScoreData] = useState(null);
+  const [tickerAnalysisData, setTickerAnalysisData] = useState(null);
 
   // Check if user is logged in on mount
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setCurrentPage('portfolio'); // Redirect to portfolio on login
+      setCurrentPage('portfolio');
     }
   }, []);
 
@@ -40,7 +43,7 @@ export default function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    setCurrentPage('portfolio'); // Redirect to portfolio after login
+    setCurrentPage('portfolio');
   };
 
   const handleLogout = async () => {
@@ -56,6 +59,8 @@ export default function App() {
       setScenarioData(data);
     } else if (page === 'credit-score-results') {
       setCreditScoreData(data);
+    } else if (page === 'ticker-analysis') {
+      setTickerAnalysisData(data);
     }
   };
 
@@ -105,6 +110,10 @@ export default function App() {
         return <CreditScoreEstimator user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
       case 'credit-score-results':
         return <CreditScoreResults user={user} onBack={() => handleNavigate('credit-score-estimator')} onNavigate={handleNavigate} resultData={creditScoreData} />;
+      case 'index-selector':
+        return <IndexSelector user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
+      case 'ticker-analysis':
+        return <TickerAnalysis user={user} onBack={() => handleNavigate('index-selector')} analysisData={tickerAnalysisData} />;
       case 'about':
         return <About user={user} onBack={() => handleNavigate('home')} />;
       case 'home':
