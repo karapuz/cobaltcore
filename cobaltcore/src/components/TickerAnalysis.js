@@ -22,6 +22,12 @@ function getRatingBadge(rating) {
   );
 }
 
+function formatNotch(notch) {
+  if (notch === 0) return '0';
+  if (notch > 0) return `+${notch}`;
+  return `${notch}`;
+}
+
 export default function TickerAnalysis({ user, onBack, analysisData }) {
   const [data, setData] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -33,7 +39,6 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
 
   const { index, ticker } = analysisData || {};
 
-  // Load initial data
   useEffect(() => {
     if (ticker) {
       loadPillarData();
@@ -46,7 +51,6 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
     try {
       const response = await authService.getPillarValues(ticker.ticker_id);
       setData(response);
-      // Initialize edited values from response
       const weights = {};
       const ranges = {};
       (response.pillars || []).forEach(p => {
@@ -100,7 +104,6 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
     setEditedRanges(updatedRanges);
     setRangeModalPillar(null);
 
-    // Recalculate with new ranges
     setLoading(true);
     setError(null);
     try {
@@ -131,8 +134,11 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
         `${p.name},${p.formatted_value},${p.rank},${p.projected_formatted_value},${p.projected_rank},${(p.weight * 100).toFixed(0)}%`
       ),
       '',
-      `Compass Rating,${data.compass_rating}`,
-      `Projected Rating,${data.projected_compass_rating}`
+      `DSCR,${data.dscr.formatted_value}`,
+      `DSCR Notch,${formatNotch(data.dscr.notch)} (${data.dscr.notch_reason})`,
+      '',
+      `Base Rating,${data.base_rating}`,
+      `Compass Rating,${data.compass_rating}`
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -192,7 +198,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
           <div className="text-center py-12 text-gray-500">Loading analysis...</div>
         ) : data ? (
           <>
-            {/* Results Table */}
+            {/* Pillars Table */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6 overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -255,21 +261,57 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
               </table>
             </div>
 
-            {/* Compass Ratings - Actual and Projected side by side */}
-            <div className="flex justify-center gap-8 mb-8">
-              <div className="bg-white rounded-lg border border-gray-200 px-10 py-6 text-center">
-                <p className="text-sm text-gray-500 mb-2">COMPASS RATING</p>
-                <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.compass_rating)}`}>
-                  {data.compass_rating}
-                </span>
-                <p className="text-sm text-gray-500 mt-2">Score: {data.total_score.toFixed(2)}</p>
+            {/* DSCR Notching Section */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+              <div className="bg-gray-800 text-white px-4 py-3">
+                <h3 className="font-bold text-sm">DSCR NOTCHING</h3>
               </div>
-              <div className="bg-blue-50 rounded-lg border border-blue-200 px-10 py-6 text-center">
-                <p className="text-sm text-blue-600 mb-2">PROJECTED RATING</p>
-                <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.projected_compass_rating)}`}>
-                  {data.projected_compass_rating}
-                </span>
-                <p className="text-sm text-blue-600 mt-2">Score: {data.projected_total_score.toFixed(2)}</p>
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Debt Service Coverage Ratio</p>
+                    <p className="text-xl font-bold text-gray-900">{data.dscr.formatted_value}</p>
+                    <p className="text-xs text-gray-400 mt-1">Operating Cash Flow / (Short Term Debt + Debt)</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Notch Adjustment</p>
+                    <p className={`text-xl font-bold ${data.dscr.notch < 0 ? 'text-green-600' : data.dscr.notch > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      {formatNotch(data.dscr.notch)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{data.dscr.notch_reason}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Compass Rating Card */}
+            <div className="flex justify-center mb-8">
+              <div className="bg-white rounded-lg border border-gray-200 px-10 py-6 text-center min-w-[320px]">
+                <p className="text-sm text-gray-500 mb-4">COMPASS RATING</p>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Base Score:</span>
+                    <span className="font-mono text-sm">{data.base_score.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Base Rating:</span>
+                    {getRatingBadge(data.base_rating)}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">DSCR Notch:</span>
+                    <span className={`font-mono text-sm font-bold ${data.dscr.notch < 0 ? 'text-green-600' : data.dscr.notch > 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                      {formatNotch(data.dscr.notch)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-200 pt-4">
+                  <p className="text-xs text-gray-500 mb-2">FINAL RATING</p>
+                  <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.compass_rating)}`}>
+                    {data.compass_rating}
+                  </span>
+                </div>
               </div>
             </div>
 

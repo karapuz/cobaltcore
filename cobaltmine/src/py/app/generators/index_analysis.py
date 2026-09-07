@@ -43,8 +43,7 @@ MOCK_TICKERS = {
     ],
 }
 
-# Mock basic values per ticker (in billions, ratios as decimals)
-# Now includes both actual and projected values
+# Mock basic values per ticker (in billions)
 MOCK_BASIC_VALUES = {
     "AAPL": {
         "actual": {"revenue": 394.3, "ebitda": 130.5, "free_cash_flow": 99.6, "debt": 111.1, "total_debt": 111.1, "net_debt": 49.0, "interest": 3.9, "operating_cash_flow": 110.5, "short_term_debt": 15.0},
@@ -108,6 +107,7 @@ MOCK_BASIC_VALUES = {
 # Configuration
 # ─────────────────────────────────────
 
+# 6 pillars with weights summing to 100%
 DEFAULT_RANGES = {
     "revenue_scale": [100, 50, 25, 12.5, 6, 3, 1.5, 1],
     "ebitda_margin": [0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.02],
@@ -115,28 +115,25 @@ DEFAULT_RANGES = {
     "td_ebitda": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
     "nd_ebitda": [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
     "ebitda_interest": [15, 10, 8, 6, 4, 3, 2, 1.5],
-    "dscr": [3.0, 2.5, 2.0, 1.5, 1.2, 1.0, 0.8, 0.5],
 }
 
+# Weights sum to 100%
 DEFAULT_WEIGHTS = {
     "revenue_scale": 0.15,
     "ebitda_margin": 0.15,
-    "fcf_debt": 0.15,
-    "td_ebitda": 0.15,
-    "nd_ebitda": 0.10,
+    "fcf_debt": 0.20,
+    "td_ebitda": 0.20,
+    "nd_ebitda": 0.15,
     "ebitda_interest": 0.15,
-    "dscr": 0.15,
 }
 
-# Increasing = True means higher value = better (lower rank)
 PILLAR_DIRECTION = {
-    "revenue_scale": True,
-    "ebitda_margin": True,
-    "fcf_debt": True,
-    "td_ebitda": False,
-    "nd_ebitda": False,
-    "ebitda_interest": True,
-    "dscr": True,
+    "revenue_scale": True,      # higher = better
+    "ebitda_margin": True,      # higher = better
+    "fcf_debt": True,           # higher = better
+    "td_ebitda": False,         # lower = better
+    "nd_ebitda": False,         # lower = better
+    "ebitda_interest": True,    # higher = better
 }
 
 PILLAR_NAMES = {
@@ -146,10 +143,9 @@ PILLAR_NAMES = {
     "td_ebitda": "Total Debt / EBITDA",
     "nd_ebitda": "Net Debt / EBITDA",
     "ebitda_interest": "EBITDA / Interest",
-    "dscr": "Debt Service Coverage Ratio",
 }
 
-# Numeric rank to letter rating mapping (0 = best, 8 = worst)
+# Numeric rank to letter rating (0 = best, 8 = worst)
 RANK_TO_RATING = {
     0: "AAA",
     1: "AA+",
@@ -161,6 +157,13 @@ RANK_TO_RATING = {
     7: "BBB+",
     8: "BBB",
 }
+
+# Ordered rating scale for notch adjustments
+RATING_ORDER = [
+    "AAA", "AA+", "AA", "AA-", "A+", "A", "A-",
+    "BBB+", "BBB", "BBB-", "BB+", "BB", "BB-",
+    "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C", "D"
+]
 
 RATING_SCALE = [
     ("AAA",   0.0,  1.5),
@@ -198,8 +201,6 @@ def calculate_pillar_values(basic):
     total_debt = basic.get("total_debt", 1)
     net_debt = basic.get("net_debt", 0)
     interest = basic.get("interest", 1)
-    ocf = basic.get("operating_cash_flow", 0)
-    std = basic.get("short_term_debt", 0)
     
     return {
         "revenue_scale": revenue,
@@ -208,12 +209,59 @@ def calculate_pillar_values(basic):
         "td_ebitda": total_debt / ebitda if ebitda else 0,
         "nd_ebitda": net_debt / ebitda if ebitda else 0,
         "ebitda_interest": ebitda / interest if interest else 0,
-        "dscr": ocf / (std + debt) if (std + debt) else 0,
     }
 
 
+def calculate_dscr(basic):
+    """
+    Calculate Debt Service Coverage Ratio.
+    DSCR = Operating Cash Flow / (Short Term Debt + Debt)
+    """
+    ocf = basic.get("operating_cash_flow", 0)
+    std = basic.get("short_term_debt", 0)
+    debt = basic.get("debt", 0)
+    
+    denominator = std + debt
+    if denominator == 0:
+        return 0
+    return ocf / denominator
+
+
+def calculate_dscr_notch(dscr_value):
+    """
+    Calculate DSCR notch adjustment.
+    - DSCR >= 1.8: notch = -1 (improves rating by 1)
+    - DSCR < 1.0:  notch = +1 (worsens rating by 1)
+    - Otherwise:   notch = 0 (no change)
+    """
+    if dscr_value >= 1.8:
+        return -1, "DSCR ≥ 1.8"
+    elif dscr_value < 1.0:
+        return 1, "DSCR < 1.0"
+    else:
+        return 0, "1.0 ≤ DSCR < 1.8"
+
+
+def apply_notch(rating, notch):
+    """
+    Apply notch adjustment to a rating.
+    Positive notch moves down (worse), negative notch moves up (better).
+    """
+    if notch == 0:
+        return rating
+    
+    try:
+        idx = RATING_ORDER.index(rating)
+    except ValueError:
+        return rating
+    
+    new_idx = idx + notch
+    new_idx = max(0, min(len(RATING_ORDER) - 1, new_idx))
+    return RATING_ORDER[new_idx]
+
+
 def calculate_rank(value, breakpoints, is_increasing):
-    """Calculate numeric rank based on value and breakpoints (0 = best, 8 = worst)"""
+    """Calculate numeric rank (0 = best, 8 = worst)"""
     if is_increasing:
         for i, bp in enumerate(breakpoints):
             if value >= bp:
@@ -264,7 +312,7 @@ def format_pillar_value(pillar_id, value):
 
 
 def score_to_rating(score):
-    """Convert total score to rating"""
+    """Convert numeric score to letter rating"""
     for rating, low, high in RATING_SCALE:
         if low <= score < high:
             return rating
@@ -272,7 +320,7 @@ def score_to_rating(score):
 
 
 def build_pillar_response(ticker_id, weights=None, ranges=None):
-    """Build full pillar response for a ticker with actual and projected values"""
+    """Build full pillar response for a ticker"""
     weights = weights or DEFAULT_WEIGHTS
     ranges = ranges or DEFAULT_RANGES
     
@@ -283,12 +331,16 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     actual_pillar_values = calculate_pillar_values(actual_basic)
     projected_pillar_values = calculate_pillar_values(projected_basic)
     
-    pillars = []
-    total_score = 0
-    projected_total_score = 0
+    # Calculate DSCR and notch from actual values
+    dscr_value = calculate_dscr(actual_basic)
+    dscr_notch, dscr_reason = calculate_dscr_notch(dscr_value)
     
-    for pillar_id in ["revenue_scale", "ebitda_margin", "fcf_debt", "td_ebitda", "nd_ebitda", "ebitda_interest", "dscr"]:
-        # Actual values
+    pillars = []
+    base_score = 0
+    
+    pillar_ids = ["revenue_scale", "ebitda_margin", "fcf_debt", "td_ebitda", "nd_ebitda", "ebitda_interest"]
+    
+    for pillar_id in pillar_ids:
         actual_value = actual_pillar_values[pillar_id]
         is_increasing = PILLAR_DIRECTION[pillar_id]
         breakpoints = ranges.get(pillar_id, DEFAULT_RANGES[pillar_id])
@@ -296,42 +348,46 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
         
         actual_numeric_rank = calculate_rank(actual_value, breakpoints, is_increasing)
         actual_rating = rank_to_rating(actual_numeric_rank)
-        actual_score = actual_numeric_rank * weight
-        total_score += actual_score
+        base_score += actual_numeric_rank * weight
         
-        # Projected values
         projected_value = projected_pillar_values[pillar_id]
         projected_numeric_rank = calculate_rank(projected_value, breakpoints, is_increasing)
         projected_rating = rank_to_rating(projected_numeric_rank)
-        projected_score = projected_numeric_rank * weight
-        projected_total_score += projected_score
         
         pillars.append({
             "name": PILLAR_NAMES[pillar_id],
             "id": pillar_id,
-            # Actual
             "value": actual_value,
             "formatted_value": format_pillar_value(pillar_id, actual_value),
             "numeric_rank": actual_numeric_rank,
             "rank": actual_rating,
             "range_display": get_range_display(actual_numeric_rank, breakpoints, is_increasing),
             "range_breakpoints": breakpoints,
-            # Projected
             "projected_value": projected_value,
             "projected_formatted_value": format_pillar_value(pillar_id, projected_value),
             "projected_numeric_rank": projected_numeric_rank,
             "projected_rank": projected_rating,
-            # Common
             "weight": weight,
             "is_increasing": is_increasing,
         })
     
+    # Base rating before notch
+    base_rating = score_to_rating(base_score)
+    
+    # Final rating after notch
+    compass_rating = apply_notch(base_rating, dscr_notch)
+    
     return {
         "pillars": pillars,
-        "total_score": total_score,
-        "compass_rating": score_to_rating(total_score),
-        "projected_total_score": projected_total_score,
-        "projected_compass_rating": score_to_rating(projected_total_score),
+        "dscr": {
+            "value": dscr_value,
+            "formatted_value": f"{dscr_value:.2f}x",
+            "notch": dscr_notch,
+            "notch_reason": dscr_reason,
+        },
+        "base_score": base_score,
+        "base_rating": base_rating,
+        "compass_rating": compass_rating,
     }
 
 # ─────────────────────────────────────
