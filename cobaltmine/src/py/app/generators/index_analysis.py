@@ -319,6 +319,25 @@ def score_to_rating(score):
     return "CC"
 
 
+PROJ_VELOCITY = {
+    "revenue": 1.03, 
+    "ebitda": 1.02, 
+    "free_cash_flow": 1, 
+    "debt": 1, 
+    "total_debt": 1, 
+    "net_debt": 1, 
+    "interest": 1.01, 
+    "operating_cash_flow": 1, 
+    "short_term_debt": 1
+}
+
+def build_projected(actual_basic: dict):
+    # import pdb; pdb.set_trace()
+    proj = {}
+    for key, value in actual_basic.items():
+        proj[key] = value * PROJ_VELOCITY[key]
+    return proj
+
 def build_pillar_response(ticker_id, weights=None, ranges=None):
     """Build full pillar response for a ticker"""
     weights = weights or DEFAULT_WEIGHTS
@@ -326,7 +345,9 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     
     ticker_data = MOCK_BASIC_VALUES.get(ticker_id, MOCK_BASIC_VALUES["AAPL"])
     actual_basic = ticker_data.get("actual", ticker_data)
-    projected_basic = ticker_data.get("projected", actual_basic)
+
+    # projected_basic = ticker_data.get("projected", actual_basic)
+    projected_basic = build_projected(actual_basic=actual_basic)
     
     actual_pillar_values = calculate_pillar_values(actual_basic)
     projected_pillar_values = calculate_pillar_values(projected_basic)
