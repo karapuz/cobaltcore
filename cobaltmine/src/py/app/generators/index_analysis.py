@@ -331,12 +331,24 @@ PROJ_VELOCITY = {
     "short_term_debt": 1
 }
 
-def build_projected(actual_basic: dict):
-    # import pdb; pdb.set_trace()
-    proj = {}
-    for key, value in actual_basic.items():
-        proj[key] = value * PROJ_VELOCITY[key]
-    return proj
+# Forecast horizons emitted on every pillar. Add an entry here and both the
+# API payload and the CSV export pick it up; only the table columns in
+# TickerAnalysis.js need a matching change.
+FORECAST_HORIZONS = [
+    {"key": "forecast_1y", "label": "1Y FORECAST", "years": 1},
+    {"key": "forecast_2y", "label": "2Y FORECAST", "years": 2},
+]
+
+
+def build_forecast(actual_basic: dict, years: int = 1):
+    """
+    Project basic financials `years` ahead by compounding the per-year velocity.
+    years=1 reproduces the old build_projected() output exactly.
+    """
+    return {
+        key: value * (PROJ_VELOCITY[key] ** years)
+        for key, value in actual_basic.items()
+    }
 
 def build_pillar_response(ticker_id, weights=None, ranges=None):
     """Build full pillar response for a ticker"""
@@ -346,11 +358,13 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     ticker_data = MOCK_BASIC_VALUES.get(ticker_id, MOCK_BASIC_VALUES["AAPL"])
     actual_basic = ticker_data.get("actual", ticker_data)
 
-    # projected_basic = ticker_data.get("projected", actual_basic)
-    projected_basic = build_projected(actual_basic=actual_basic)
-    
     actual_pillar_values = calculate_pillar_values(actual_basic)
-    projected_pillar_values = calculate_pillar_values(projected_basic)
+
+    # One set of pillar values per forecast horizon, keyed by horizon key.
+    forecast_pillar_values = {
+        h["key"]: calculate_pillar_values(build_forecast(actual_basic, h["years"]))
+        for h in FORECAST_HORIZONS
+    }
     
     # Calculate DSCR and notch from actual values
     dscr_value = calculate_dscr(actual_basic)
@@ -371,11 +385,7 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
         actual_rating = rank_to_rating(actual_numeric_rank)
         base_score += actual_numeric_rank * weight
         
-        projected_value = projected_pillar_values[pillar_id]
-        projected_numeric_rank = calculate_rank(projected_value, breakpoints, is_increasing)
-        projected_rating = rank_to_rating(projected_numeric_rank)
-        
-        pillars.append({
+        pillar = {
             "name": PILLAR_NAMES[pillar_id],
             "id": pillar_id,
             "value": actual_value,
@@ -384,13 +394,20 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
             "rank": actual_rating,
             "range_display": get_range_display(actual_numeric_rank, breakpoints, is_increasing),
             "range_breakpoints": breakpoints,
-            "projected_value": projected_value,
-            "projected_formatted_value": format_pillar_value(pillar_id, projected_value),
-            "projected_numeric_rank": projected_numeric_rank,
-            "projected_rank": projected_rating,
             "weight": weight,
             "is_increasing": is_increasing,
-        })
+        }
+
+        for h in FORECAST_HORIZONS:
+            key = h["key"]
+            forecast_value = forecast_pillar_values[key][pillar_id]
+            forecast_numeric_rank = calculate_rank(forecast_value, breakpoints, is_increasing)
+            pillar[f"{key}_value"] = forecast_value
+            pillar[f"{key}_formatted_value"] = format_pillar_value(pillar_id, forecast_value)
+            pillar[f"{key}_numeric_rank"] = forecast_numeric_rank
+            pillar[f"{key}_rank"] = rank_to_rating(forecast_numeric_rank)
+
+        pillars.append(pillar)
     
     # Base rating before notch
     base_rating = score_to_rating(base_score)
@@ -400,6 +417,7 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     
     return {
         "pillars": pillars,
+        "forecast_horizons": FORECAST_HORIZONS,
         "dscr": {
             "value": dscr_value,
             "formatted_value": f"{dscr_value:.2f}x",

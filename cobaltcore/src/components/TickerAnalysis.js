@@ -3,6 +3,13 @@ import { ArrowLeft, Download, Settings, RotateCcw } from 'lucide-react';
 import authService from '../services/authService';
 import RangeEditorModal from './RangeEditorModal';
 
+// Forecast columns rendered after VALUE / RANK. Field names match the
+// `forecast_*` keys returned by /v0/pillar/values/historical.
+const FORECAST_HORIZONS = [
+  { key: 'forecast_1y', label: '1Y FORECAST', rankLabel: '1Y RANK' },
+  { key: 'forecast_2y', label: '2Y FORECAST', rankLabel: '2Y RANK' },
+];
+
 function getRatingColor(rating) {
   if (!rating) return 'bg-gray-100 text-gray-800';
   if (rating.startsWith('AAA')) return 'bg-emerald-100 text-emerald-800';
@@ -129,9 +136,13 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       `Credit Analysis: ${ticker.ticker_name} (${ticker.ticker_id})`,
       `Index: ${index.index_name}`,
       '',
-      'Pillar,Value,Rank,Projected Value,Projected Rank,Weight',
+      ['Pillar', 'Value', 'Rank',
+        ...FORECAST_HORIZONS.flatMap(h => [`${h.label} Value`, `${h.label} Rank`]),
+        'Weight'].join(','),
       ...data.pillars.map(p =>
-        `${p.name},${p.formatted_value},${p.rank},${p.projected_formatted_value},${p.projected_rank},${(p.weight * 100).toFixed(0)}%`
+        [p.name, p.formatted_value, p.rank,
+          ...FORECAST_HORIZONS.flatMap(h => [p[`${h.key}_formatted_value`], p[`${h.key}_rank`]]),
+          `${(p.weight * 100).toFixed(0)}%`].join(',')
       ),
       '',
       `DSCR,${data.dscr.formatted_value}`,
@@ -206,8 +217,12 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                     <th className="text-left px-4 py-4 font-bold text-sm">PILLAR</th>
                     <th className="text-right px-4 py-4 font-bold text-sm">VALUE</th>
                     <th className="text-center px-4 py-4 font-bold text-sm">RANK</th>
-                    <th className="text-right px-4 py-4 font-bold text-sm bg-blue-900">PROJECTED</th>
-                    <th className="text-center px-4 py-4 font-bold text-sm bg-blue-900">PROJ RANK</th>
+                    {FORECAST_HORIZONS.map(h => (
+                      <React.Fragment key={h.key}>
+                        <th className="text-right px-4 py-4 font-bold text-sm bg-blue-900">{h.label}</th>
+                        <th className="text-center px-4 py-4 font-bold text-sm bg-blue-900">{h.rankLabel}</th>
+                      </React.Fragment>
+                    ))}
                     <th className="text-center px-4 py-4 font-bold text-sm">WEIGHT</th>
                   </tr>
                 </thead>
@@ -230,8 +245,16 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                       </td>
                       <td className="px-4 py-4 text-right font-mono text-sm">{pillar.formatted_value}</td>
                       <td className="px-4 py-4 text-center">{getRatingBadge(pillar.rank)}</td>
-                      <td className="px-4 py-4 text-right font-mono text-sm bg-blue-50">{pillar.projected_formatted_value}</td>
-                      <td className="px-4 py-4 text-center bg-blue-50">{getRatingBadge(pillar.projected_rank)}</td>
+                      {FORECAST_HORIZONS.map(h => (
+                        <React.Fragment key={h.key}>
+                          <td className="px-4 py-4 text-right font-mono text-sm bg-blue-50">
+                            {pillar[`${h.key}_formatted_value`]}
+                          </td>
+                          <td className="px-4 py-4 text-center bg-blue-50">
+                            {getRatingBadge(pillar[`${h.key}_rank`])}
+                          </td>
+                        </React.Fragment>
+                      ))}
                       <td className="px-4 py-4 text-center">
                         {editMode ? (
                           <input
@@ -252,7 +275,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-100 font-bold">
-                    <td colSpan="5" className="px-4 py-4 text-right">TOTAL WEIGHT</td>
+                    <td colSpan={3 + FORECAST_HORIZONS.length * 2} className="px-4 py-4 text-right">TOTAL WEIGHT</td>
                     <td className={`px-4 py-4 text-center ${editMode && !weightsValid ? 'text-red-600' : ''}`}>
                       {editMode ? `${Math.round(totalWeight * 100)}%` : '100%'}
                     </td>
