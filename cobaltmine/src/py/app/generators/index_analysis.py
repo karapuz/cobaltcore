@@ -339,6 +339,16 @@ FORECAST_HORIZONS = [
     {"key": "forecast_2y", "label": "2Y FORECAST", "years": 2},
 ]
 
+# How much each horizon contributes to a pillar's blended rank before the
+# pillar weights are applied. "actual" is the PILLAR column. Must sum to 1.0.
+SCORE_BLEND = {
+    "actual": 0.55,
+    "forecast_1y": 0.35,
+    "forecast_2y": 0.10,
+}
+
+assert abs(sum(SCORE_BLEND.values()) - 1.0) < 1e-9, "SCORE_BLEND must sum to 1.0"
+
 
 def build_forecast(actual_basic: dict, years: int = 1):
     """
@@ -383,7 +393,6 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
         
         actual_numeric_rank = calculate_rank(actual_value, breakpoints, is_increasing)
         actual_rating = rank_to_rating(actual_numeric_rank)
-        base_score += actual_numeric_rank * weight
         
         pillar = {
             "name": PILLAR_NAMES[pillar_id],
@@ -407,6 +416,19 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
             pillar[f"{key}_numeric_rank"] = forecast_numeric_rank
             pillar[f"{key}_rank"] = rank_to_rating(forecast_numeric_rank)
 
+        # Blend the three horizons into one rank for this pillar, then weight it.
+        blended_numeric_rank = actual_numeric_rank * SCORE_BLEND["actual"]
+        for h in FORECAST_HORIZONS:
+            blended_numeric_rank += (
+                pillar[f"{h['key']}_numeric_rank"] * SCORE_BLEND[h["key"]]
+            )
+
+        pillar["blended_numeric_rank"] = blended_numeric_rank
+        pillar["blended_rank"] = rank_to_rating(round(blended_numeric_rank))
+        pillar["score_contribution"] = blended_numeric_rank * weight
+
+        base_score += pillar["score_contribution"]
+
         pillars.append(pillar)
     
     # Base rating before notch
@@ -418,6 +440,7 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     return {
         "pillars": pillars,
         "forecast_horizons": FORECAST_HORIZONS,
+        "score_blend": SCORE_BLEND,
         "dscr": {
             "value": dscr_value,
             "formatted_value": f"{dscr_value:.2f}x",

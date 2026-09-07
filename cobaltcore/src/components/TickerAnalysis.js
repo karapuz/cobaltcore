@@ -138,10 +138,11 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       '',
       ['Pillar', 'Value', 'Rank',
         ...FORECAST_HORIZONS.flatMap(h => [`${h.label} Value`, `${h.label} Rank`]),
-        'Weight'].join(','),
+        'Score Rank', 'Weight'].join(','),
       ...data.pillars.map(p =>
         [p.name, p.formatted_value, p.rank,
           ...FORECAST_HORIZONS.flatMap(h => [p[`${h.key}_formatted_value`], p[`${h.key}_rank`]]),
+          (p.blended_numeric_rank ?? 0).toFixed(2),
           `${(p.weight * 100).toFixed(0)}%`].join(',')
       ),
       '',
@@ -223,6 +224,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                         <th className="text-center px-4 py-4 font-bold text-sm bg-blue-900">{h.rankLabel}</th>
                       </React.Fragment>
                     ))}
+                    <th className="text-center px-4 py-4 font-bold text-sm">SCORE RANK</th>
                     <th className="text-center px-4 py-4 font-bold text-sm">WEIGHT</th>
                   </tr>
                 </thead>
@@ -256,6 +258,11 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                         </React.Fragment>
                       ))}
                       <td className="px-4 py-4 text-center">
+                        <span className="font-mono text-sm text-gray-900">
+                          {(pillar.blended_numeric_rank ?? 0).toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-center">
                         {editMode ? (
                           <input
                             type="number"
@@ -275,7 +282,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-100 font-bold">
-                    <td colSpan={3 + FORECAST_HORIZONS.length * 2} className="px-4 py-4 text-right">TOTAL WEIGHT</td>
+                    <td colSpan={4 + FORECAST_HORIZONS.length * 2} className="px-4 py-4 text-right">TOTAL WEIGHT</td>
                     <td className={`px-4 py-4 text-center ${editMode && !weightsValid ? 'text-red-600' : ''}`}>
                       {editMode ? `${Math.round(totalWeight * 100)}%` : '100%'}
                     </td>
@@ -317,6 +324,14 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                     <span className="text-sm text-gray-600">Base Score:</span>
                     <span className="font-mono text-sm">{data.base_score.toFixed(2)}</span>
                   </div>
+                  {data.score_blend && (
+                    <p className="text-xs text-gray-400 text-left">
+                      Blend: {Math.round(data.score_blend.actual * 100)}% pillar
+                      {FORECAST_HORIZONS.map(h => (
+                        ` · ${Math.round((data.score_blend[h.key] || 0) * 100)}% ${h.label.replace(' FORECAST', '')}`
+                      )).join('')}
+                    </p>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Base Rating:</span>
                     {getRatingBadge(data.base_rating)}
