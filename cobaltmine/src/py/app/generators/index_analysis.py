@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.data.models import User
 from app.auth import get_current_user
 from entity import entity_store as entities
+from model_data import velocity_store as velocities
 
 router = APIRouter()
 
@@ -296,17 +297,10 @@ def score_to_rating(score):
     return "CC"
 
 
-PROJ_VELOCITY = {
-    "revenue": 1.03, 
-    "ebitda": 1.02, 
-    "free_cash_flow": 1, 
-    "debt": 1, 
-    "total_debt": 1, 
-    "net_debt": 1, 
-    "interest": 1.01, 
-    "operating_cash_flow": 1, 
-    "short_term_debt": 1
-}
+# Projection velocity is per entity and editable; see
+# model_data/velocity_store.py. Entities that have never been customised
+# fall back to velocity_store.DEFAULT_VELOCITY, which holds the values this
+# module used to hardcode.
 
 # Forecast horizons emitted on every pillar. Add an entry here and both the
 # API payload and the CSV export pick it up; only the table columns in
@@ -327,13 +321,15 @@ SCORE_BLEND = {
 assert abs(sum(SCORE_BLEND.values()) - 1.0) < 1e-9, "SCORE_BLEND must sum to 1.0"
 
 
-def build_forecast(actual_basic: dict, years: int = 1):
+def build_forecast(actual_basic: dict, years: int = 1, velocity: dict = None):
     """
-    Project basic financials `years` ahead by compounding the per-year velocity.
-    years=1 reproduces the old build_projected() output exactly.
+    Project basic financials `years` ahead by compounding the per-year
+    velocity. `velocity` is the entity's stored mapping; defaults are used
+    when it is omitted.
     """
+    velocity = velocity or velocities.DEFAULT_VELOCITY
     return {
-        key: value * (PROJ_VELOCITY[key] ** years)
+        key: value * (velocity[key] ** years)
         for key, value in actual_basic.items()
     }
 
@@ -365,6 +361,12 @@ def build_pillar_response(entity_id, weights=None, ranges=None, as_of=None):
 
 def _build_pillar_response(ticker_id, entity_id=None, weights=None,
                            ranges=None, as_of=None):
+    # Read the velocity at build time, never at import, so the latest
+    # persisted revision is the one that scores this request.
+    velocity_record = (velocities.get_record(entity_id) if entity_id
+                       else {"velocity": dict(velocities.DEFAULT_VELOCITY),
+                             "revision": 0, "is_default": True})
+    velocity = velocity_record["velocity"]
     """Build full pillar response for a ticker"""
     weights = weights or DEFAULT_WEIGHTS
     ranges = ranges or DEFAULT_RANGES
@@ -376,7 +378,8 @@ def _build_pillar_response(ticker_id, entity_id=None, weights=None,
 
     # One set of pillar values per forecast horizon, keyed by horizon key.
     forecast_pillar_values = {
-        h["key"]: calculate_pillar_values(build_forecast(actual_basic, h["years"]))
+        h["key"]: calculate_pillar_values(
+            build_forecast(actual_basic, h["years"], velocity))
         for h in FORECAST_HORIZONS
     }
     
@@ -448,6 +451,9 @@ def _build_pillar_response(ticker_id, entity_id=None, weights=None,
                            if entity_id else None),
         "as_of": as_of,
         "pillars": pillars,
+        "velocity": velocity,
+        "velocity_revision": velocity_record["revision"],
+        "velocity_is_default": velocity_record["is_default"],
         "forecast_horizons": FORECAST_HORIZONS,
         "score_blend": SCORE_BLEND,
         "dscr": {
@@ -531,9 +537,74 @@ async def recalculate_pillars(
     entity_id = request_data.get("ticker_id")
     if not entity_id:
         raise HTTPException(status_code=400, detail="ticker_id (entity UUID) is required")
+
+    # A velocity sent with a recalculate is an edit, so it is persisted
+    # before the response is built — not applied for this request only.
+    if request_data.get("velocity"):
+        try:
+            velocities.update(entity_id, request_data["velocity"],
+                              actor=getattr(current_user, "username", None),
+                              note="edited via recalculate")
+        except velocities.InvalidVelocity as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+
     return build_pillar_response(
         entity_id,
         weights=request_data.get("weights"),
         ranges=request_data.get("ranges"),
         as_of=request_data.get("effective_date"),
     )
+
+
+@router.get("/v0/model/velocity")
+async def get_velocity(
+    ticker_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Projection velocity in effect for one entity."""
+    return velocities.get_record(ticker_id)
+
+
+@router.get("/v0/model/velocity/history")
+async def get_velocity_history(
+    ticker_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Every revision ever persisted for this entity."""
+    return {"ticker_id": ticker_id, "revisions": velocities.history(ticker_id)}
+
+
+@router.put("/v0/model/velocity")
+async def put_velocity(
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Persist a new velocity revision.
+
+    Accepts a partial mapping — only the fields sent are changed, the rest
+    carry over from the revision in effect.
+    """
+    entity_id = request_data.get("ticker_id")
+    if not entity_id:
+        raise HTTPException(status_code=400, detail="ticker_id (entity UUID) is required")
+    velocity = request_data.get("velocity")
+    if not velocity:
+        raise HTTPException(status_code=400, detail="velocity is required")
+    try:
+        return velocities.update(
+            entity_id, velocity,
+            actor=getattr(current_user, "username", None),
+            note=request_data.get("note"))
+    except velocities.InvalidVelocity as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.delete("/v0/model/velocity")
+async def reset_velocity(
+    ticker_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Record an explicit return to the default velocity."""
+    return velocities.reset(ticker_id,
+                            actor=getattr(current_user, "username", None))
