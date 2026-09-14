@@ -50,7 +50,7 @@ export default function IndexSelector({ user, onBack, onNavigate }) {
 
   const filteredTickers = tickers.filter(t =>
     t.ticker_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.ticker_id.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.ticker_symbol || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -141,7 +141,7 @@ export default function IndexSelector({ user, onBack, onNavigate }) {
                     className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="font-mono font-bold text-blue-600 w-16">{ticker.ticker_id}</span>
+                      <span className="font-mono font-bold text-blue-600 w-16">{ticker.ticker_symbol}</span>
                       <span className="text-gray-900">{ticker.ticker_name}</span>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-400" />

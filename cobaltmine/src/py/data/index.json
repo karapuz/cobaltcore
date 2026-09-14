@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "generated": "2026-09-13",
+  "interval_semantics": "Half-open [valid_from, valid_to). null valid_from = membership start not loaded; null valid_to = currently a member.",
+  "indices": [
+    {
+      "index_id": "DJIA",
+      "name": "Dow Jones Industrial Average",
+      "complete": true,
+      "membership_dates_loaded": false,
+      "members": [
+        {
+          "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "11ef028b-08db-5625-b3f5-ea8b87ac96b0",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "291e4648-df9d-5bcc-8f15-3d62f083c9b3",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "6dfc846c-e973-56e3-87de-187fbb54c718",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "28cceb77-2b48-552e-bd1c-d139ea5b4223",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "c5a7d1a7-0b25-5223-a300-7af2f0284165",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "f275d82f-d723-5419-97c0-708a3bbaf55e",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "f859122c-5338-5b7e-b300-5ea8d7a29d73",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "c1a7295a-7728-5b6e-a820-910f23159325",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "ddcdeb23-bf16-505f-abce-adb177de1f34",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "e6352b9a-78ff-572b-aee4-6346d15aca64",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "f66bcfbb-c883-5933-b271-6bee01aa41ef",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "f232f0e7-942c-54ec-ba8a-a02a387238c9",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "150c5e49-5f6e-5748-8319-23947b51cb02",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "4f5fe61f-d3e3-55a1-b368-57d9c73f1262",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "55dba46d-7c23-50ae-a18d-9d9e80151b91",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "9e75048e-6325-52d2-af49-2f511abef888",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "363400a2-8ab6-5bf9-812e-87700e18f08f",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "da7eee00-97fe-5ef3-80c0-0c96ac9c6c1b",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "0eb243fe-c587-54e5-bd07-71e936e968a0",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "b793ac94-2eb3-5cb2-b3c4-48474208166d",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "6e98672c-9838-5750-9d9f-05b0d3c0e7de",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "805b82b2-bb09-5b69-86b7-17a1572fa6f8",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "40ee04d7-df36-5069-820a-7bb3cc2b4ba9",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "14e94fbc-382d-5be3-90c7-fa6a8d982e44",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "1fd1ab31-5d59-574c-86a9-9685da1db4cb",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "3b32e101-4ee8-5548-a70e-f7d014d3eabd",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "090f7f74-900a-54b2-8aba-1babb362c7f9",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "6be71cbc-08ec-5b92-a495-069c0ac3191d",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        },
+        {
+          "entity_id": "3f079c26-3be3-567d-aa0d-83fb96eab25e",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "index_id": "SPX",
+      "name": "S&P 500",
+      "complete": false,
+      "membership_dates_loaded": false,
+      "members": [
+        {
+          "entity_id": "11ef028b-08db-5625-b3f5-ea8b87ac96b0",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "6dfc846c-e973-56e3-87de-187fbb54c718",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "28cceb77-2b48-552e-bd1c-d139ea5b4223",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "291e4648-df9d-5bcc-8f15-3d62f083c9b3",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "index_id": "NDX",
+      "name": "NASDAQ 100",
+      "complete": false,
+      "membership_dates_loaded": false,
+      "members": [
+        {
+          "entity_id": "11ef028b-08db-5625-b3f5-ea8b87ac96b0",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "6dfc846c-e973-56e3-87de-187fbb54c718",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        },
+        {
+          "entity_id": "ca3a47f4-83f3-532a-803b-b2926f2b4f8c",
+          "valid_from": null,
+          "valid_to": null,
+          "source": "manual:corporate-action",
+          "verified": false
+        }
+      ]
+    }
+  ]
+}

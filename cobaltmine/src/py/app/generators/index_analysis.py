@@ -1,71 +1,26 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.data.models import User
 from app.auth import get_current_user
+from entity import entity_store as entities
 
 router = APIRouter()
 
 # ─────────────────────────────────────
-# Mock Data
+# Corporate identity
 # ─────────────────────────────────────
+#
+# Index membership, entity names and tickers all come from the
+# meta layer (entity.entity_store, backed by data/meta).
+# Nothing about corporate
+# identity is hardcoded here. Entities are addressed by UUID; a ticker is
+# just one time-varying attribute of an entity, resolved at the effective
+# date of the request.
 
-MOCK_INDICES = [
-    {"index_name": "Dow Jones Industrial Average", "index_id": "DJIA"},
-    {"index_name": "S&P 500", "index_id": "SPX"},
-    {"index_name": "NASDAQ 100", "index_id": "NDX"},
-]
+# Financials are still keyed by ticker symbol. Only 13 of the 30 DJIA
+# entities have them; the rest raise 404 rather than silently scoring
+# another company's balance sheet.
 
-# DJIA constituents as of 2026-09-05 (source: stockanalysis.com/list/dow-jones-stocks).
-# Index membership changes; re-check before relying on this list.
-MOCK_TICKERS = {
-    "DJIA": [
-        {"ticker_name": "NVIDIA Corporation", "ticker_id": "NVDA"},
-        {"ticker_name": "Apple Inc.", "ticker_id": "AAPL"},
-        {"ticker_name": "Alphabet Inc.", "ticker_id": "GOOGL"},
-        {"ticker_name": "Microsoft Corporation", "ticker_id": "MSFT"},
-        {"ticker_name": "Amazon.com, Inc.", "ticker_id": "AMZN"},
-        {"ticker_name": "JPMorgan Chase & Co.", "ticker_id": "JPM"},
-        {"ticker_name": "Walmart Inc.", "ticker_id": "WMT"},
-        {"ticker_name": "Visa Inc.", "ticker_id": "V"},
-        {"ticker_name": "Johnson & Johnson", "ticker_id": "JNJ"},
-        {"ticker_name": "Cisco Systems, Inc.", "ticker_id": "CSCO"},
-        {"ticker_name": "Chevron Corporation", "ticker_id": "CVX"},
-        {"ticker_name": "The Coca-Cola Company", "ticker_id": "KO"},
-        {"ticker_name": "Caterpillar Inc.", "ticker_id": "CAT"},
-        {"ticker_name": "Merck & Co., Inc.", "ticker_id": "MRK"},
-        {"ticker_name": "UnitedHealth Group Incorporated", "ticker_id": "UNH"},
-        {"ticker_name": "The Procter & Gamble Company", "ticker_id": "PG"},
-        {"ticker_name": "The Home Depot, Inc.", "ticker_id": "HD"},
-        {"ticker_name": "The Goldman Sachs Group, Inc.", "ticker_id": "GS"},
-        {"ticker_name": "Amgen Inc.", "ticker_id": "AMGN"},
-        {"ticker_name": "American Express Company", "ticker_id": "AXP"},
-        {"ticker_name": "International Business Machines Corporation", "ticker_id": "IBM"},
-        {"ticker_name": "Salesforce, Inc.", "ticker_id": "CRM"},
-        {"ticker_name": "McDonald's Corporation", "ticker_id": "MCD"},
-        {"ticker_name": "The Walt Disney Company", "ticker_id": "DIS"},
-        {"ticker_name": "The Boeing Company", "ticker_id": "BA"},
-        {"ticker_name": "3M Company", "ticker_id": "MMM"},
-        {"ticker_name": "The Sherwin-Williams Company", "ticker_id": "SHW"},
-        {"ticker_name": "The Travelers Companies, Inc.", "ticker_id": "TRV"},
-        {"ticker_name": "Honeywell International Inc.", "ticker_id": "HON"},
-        {"ticker_name": "NIKE, Inc.", "ticker_id": "NKE"},
-    ],
-    "SPX": [
-        {"ticker_name": "Apple Inc.", "ticker_id": "AAPL"},
-        {"ticker_name": "Microsoft Corporation", "ticker_id": "MSFT"},
-        {"ticker_name": "Amazon.com Inc.", "ticker_id": "AMZN"},
-        {"ticker_name": "NVIDIA Corporation", "ticker_id": "NVDA"},
-        {"ticker_name": "Alphabet Inc.", "ticker_id": "GOOGL"},
-    ],
-    "NDX": [
-        {"ticker_name": "Apple Inc.", "ticker_id": "AAPL"},
-        {"ticker_name": "Microsoft Corporation", "ticker_id": "MSFT"},
-        {"ticker_name": "NVIDIA Corporation", "ticker_id": "NVDA"},
-        {"ticker_name": "Meta Platforms Inc.", "ticker_id": "META"},
-    ],
-}
-
-# Mock basic values per ticker (in billions)
 MOCK_BASIC_VALUES = {
     "AAPL": {
         "actual": {"revenue": 394.3, "ebitda": 130.5, "free_cash_flow": 99.6, "debt": 111.1, "total_debt": 111.1, "net_debt": 49.0, "interest": 3.9, "operating_cash_flow": 110.5, "short_term_debt": 15.0},
@@ -382,12 +337,39 @@ def build_forecast(actual_basic: dict, years: int = 1):
         for key, value in actual_basic.items()
     }
 
-def build_pillar_response(ticker_id, weights=None, ranges=None):
+def build_pillar_response(entity_id, weights=None, ranges=None, as_of=None):
+    """
+    Pillar response for one entity as of a date.
+
+    `entity_id` is a UUID from the meta layer. The ticker is
+    resolved at `as_of` and used only to find the financials.
+    """
+    try:
+        ticker_id = entities.get_value(entity_id, "exchange_ticker", as_of)
+    except entities.EntityNotFound:
+        raise HTTPException(status_code=404,
+                            detail=f"Unknown entity {entity_id}")
+    if ticker_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Entity {entity_id} had no exchange ticker on {as_of or 'today'}")
+
+    if ticker_id not in MOCK_BASIC_VALUES:
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No financials loaded for {ticker_id} "
+                    f"({entities.get_value(entity_id, 'corporate_name', as_of)})"))
+
+    return _build_pillar_response(ticker_id, entity_id, weights, ranges, as_of)
+
+
+def _build_pillar_response(ticker_id, entity_id=None, weights=None,
+                           ranges=None, as_of=None):
     """Build full pillar response for a ticker"""
     weights = weights or DEFAULT_WEIGHTS
     ranges = ranges or DEFAULT_RANGES
     
-    ticker_data = MOCK_BASIC_VALUES.get(ticker_id, MOCK_BASIC_VALUES["AAPL"])
+    ticker_data = MOCK_BASIC_VALUES[ticker_id]
     actual_basic = ticker_data.get("actual", ticker_data)
 
     actual_pillar_values = calculate_pillar_values(actual_basic)
@@ -460,6 +442,11 @@ def build_pillar_response(ticker_id, weights=None, ranges=None):
     compass_rating = apply_notch(base_rating, dscr_notch)
     
     return {
+        "entity_id": entity_id,
+        "ticker_symbol": ticker_id,
+        "corporate_name": (entities.get_value(entity_id, "corporate_name", as_of)
+                           if entity_id else None),
+        "as_of": as_of,
         "pillars": pillars,
         "forecast_horizons": FORECAST_HORIZONS,
         "score_blend": SCORE_BLEND,
@@ -483,8 +470,12 @@ async def get_indices(
     effective_date: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get list of available indices"""
-    return {"indices": MOCK_INDICES}
+    """Available indices, from the meta_information layer."""
+    return {"indices": [
+        {"index_id": i["index_id"], "index_name": i["name"],
+         "complete": i["complete"]}
+        for i in entities.list_indices()
+    ]}
 
 
 @router.get("/v0/index/value/historical")
@@ -493,9 +484,32 @@ async def get_index_tickers(
     effective_date: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get tickers for a specific index"""
-    tickers = MOCK_TICKERS.get(index_id, [])
-    return {"tickers": tickers}
+    """
+    Components of an index as of a date.
+
+    ticker_id is the entity UUID — the stable handle every downstream call
+    uses. ticker_symbol and ticker_name are that entity's attributes
+    resolved at `effective_date`, so a past date returns the name and ticker
+    the company had then.
+    """
+    try:
+        components = entities.index_components(index_id, effective_date)
+        meta = entities.index_metadata(index_id)
+    except entities.IndexNotFound:
+        raise HTTPException(status_code=404, detail=f"Unknown index {index_id}")
+
+    return {
+        "index_id": index_id,
+        "as_of": effective_date,
+        "complete": meta["complete"],
+        "membership_dates_loaded": meta["membership_dates_loaded"],
+        "tickers": [
+            {"ticker_id": c["entity_id"],
+             "ticker_symbol": c["ticker"],
+             "ticker_name": c["name"]}
+            for c in components
+        ],
+    }
 
 
 @router.get("/v0/pillar/values/historical")
@@ -504,8 +518,8 @@ async def get_pillar_values(
     effective_date: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get pillar values for a specific ticker"""
-    return build_pillar_response(ticker_id)
+    """Pillar values for one entity. ticker_id is an entity UUID."""
+    return build_pillar_response(ticker_id, as_of=effective_date)
 
 
 @router.post("/v0/pillar/recalculate")
@@ -513,8 +527,13 @@ async def recalculate_pillars(
     request_data: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """Recalculate pillars with custom weights and ranges"""
-    ticker_id = request_data.get("ticker_id", "AAPL")
-    weights = request_data.get("weights")
-    ranges = request_data.get("ranges")
-    return build_pillar_response(ticker_id, weights, ranges)
+    """Recalculate pillars with custom weights and ranges."""
+    entity_id = request_data.get("ticker_id")
+    if not entity_id:
+        raise HTTPException(status_code=400, detail="ticker_id (entity UUID) is required")
+    return build_pillar_response(
+        entity_id,
+        weights=request_data.get("weights"),
+        ranges=request_data.get("ranges"),
+        as_of=request_data.get("effective_date"),
+    )

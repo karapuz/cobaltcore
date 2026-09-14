@@ -133,7 +133,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
   const handleDownloadCSV = () => {
     if (!data) return;
     const lines = [
-      `Credit Analysis: ${ticker.ticker_name} (${ticker.ticker_id})`,
+      `Credit Analysis: ${ticker.ticker_name} (${ticker.ticker_symbol})`,
       `Index: ${index.index_name}`,
       '',
       ['Pillar', 'Value', 'Rank',
@@ -156,7 +156,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${ticker.ticker_id}_credit_analysis.csv`;
+    a.download = `${ticker.ticker_symbol}_credit_analysis.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -179,7 +179,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">
-                  {ticker.ticker_id} - {ticker.ticker_name}
+                  {ticker.ticker_symbol} - {ticker.ticker_name}
                 </h1>
                 <p className="text-xs text-gray-500">{index.index_name}</p>
               </div>

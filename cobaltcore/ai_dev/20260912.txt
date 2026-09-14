@@ -1,0 +1,19 @@
+ITERATION [1] 2026/09/12
+
+ENTITY:
+We need to introduce entity (such as Apple Inc, Amazon.com, Inc. )
+All entities have unique UUID (that we generate)
+All entites also have attributes that can mutate in time.
+For example, Meta Platforms, Inc used be called Facbook (and used to have ticker FB) and now it has ticker META
+we need to trinduce an API that will allow us to ask the following quetion:
+- given UUID of the corp, date, and name of the attribute, what's the value of this attribute
+- attributes can be:
+    - Corporate Name
+    - Exchange Ticker
+    - CUSIP
+    - ISIN
+    - CIK (Central Index Key)
+    etc.
+
+we will introduce a folder ./meta_information that will hold a file with all data for all corproations
+- for now we are doing it just for Dow Jones components

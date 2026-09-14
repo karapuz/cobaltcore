@@ -1,22 +1,115 @@
+MAIN FUNCITONAL IDEA:
+1. We want to allow user to select an index
+2. Then allow user to select a ticker from that index
+3. Then present credit score which is composed from the following elements
+    - the basic values for this ticker 
+    - the basic values will be combined into pillar values
+    - the range values (that will create ranks for all pillar values)
+    - the weights
+    - final score, which is a sum of product of weights and ranks
+4. Separately, we want provide ability to EDIT WEIGTHS and RANGES for all PILLARS
+
+DATA EXAMPLES:
+Basic values:
+    revenue: 100
+    ebitda: 50
+    free_cash_flow: 20
+    debt: 10
+    total_debt: 5
+    net_debt: 5
+    interest: 1
+    operating_cash_flow: 2
+    short_term_debt: 3
+
+Pillar values:
+    revenue_scale = revenue
+    ebitda_margin = ebitda / revenue
+    fcf_debt = free_cash_flow / debt
+    td_ebitda = total_debt / ebitda
+    nd_ebitda = net_debt / ebitda
+    ebitda_interest = ebitda / interest
+    dscr = operating_cash_flow / (short_term_debt + debt)
+
+Pillar names
+    (Revenue Scale, revenue_scale)
+    (EBITDA Margin, ebitda_margin)
+    (Free Cash Flow / Debt, fcf_debt)
+    (Total Debt / EBITDA, td_ebitda)
+    (Net Debt / EBITDA, nd_ebitda)
+    (EBITDA / Interest, ebitda_interest)
+    (Debt Service Coverage Ratio, dscr)
+
+Range Values:
+    the lower the rank assiagned to the value, the better resultant credit rating
+    there are two types of values: 
+        [D] those whose rank decreases as the value gets smaller, and
+        [I] those whose rank decreases as the value gets bigger
+    for example, revenue_scale is [I]
+    range_values = 0, 1,    2, 3,    4, 5, 6,   7
+    revenue_scale = 100, 50, 25, 12.5, 6, 3, 1.5, 1
+    this is interpreted as: 
+        - if revenue_scale is above 100, then the value is 0
+        - if revenue_scale is between 100 and 50, then value is 1
+        ....
+        - if revenue_scale is between 1.5 and 1, then value is 7
+        - if revenue_scale is less than 1, then value is 8
+    
+    List of [D] pillars:
+        revenue_scale, ebitda_margin, fcf_debt, ebitda_interest, operating_cash_flow
+    List of [I] pillars:
+        td_ebitda, nd_ebitda, 
+
+Final Ratings:
+    ("AAA",   0.0,  1.5),
+    ("AA+",   1.5,  2.5),
+    ("AA",    2.5,  3.5),
+    ("AA-",   3.5,  4.5),
+    ("A+",    4.5,  5.5),
+    ("A",     5.5,  6.5),
+    ("A-",    6.5,  7.5),
+    ("BBB+",  7.5,  8.5),
+    ("BBB",   8.5,  9.5),
+    ("BBB-",  9.5, 10.5),
+    ("BB+",  10.5, 11.5),
+    ("BB",   11.5, 12.5),
+    ("BB-",  12.5, 13.5),
+    ("B+",   13.5, 14.5),
+    ("B",    14.5, 15.5),
+    ("B-",   15.5, 16.5),
+    ("CCC+", 16.5, 17.5),
+    ("CCC",  17.5, 18.5),
+    ("CCC-", 18.5, 19.5),
+    ("CC",   19.5, 25.0),
+
+DATA DESIGN CONCEPTS:
+- all string data has the structure (text, ID). 
+- When text string is displayed, the UI always holds a corresponding ID as a reference
+- When any text string is returned (or requested), there are always two elements (text string, ID)
+
+
+WORKFLOW + APIS:
 We are adding a few more pages
 - there will be a drop down with a collection of indices (for now it will have only Down Jones)
-    /v0/index/names/historical
-    - /v0/index/names/historical will take the following arguments:
+    /v0/index/name/historical
+    - the API has following arguments:
         - effective_date
-    - /v0/index/names/historical will return json with the following keys:
+    - the API will return json with the following keys:
         - index_name, index_id
     - index_name values will be used to populate corresponding screen values
     - index_id will be used for the consecutive calls
 
 - once client selects a porfolio, the following api will be called:
-    /v0/index/values/historical
-    - /v0/index/values/historical will take the following arguments:
+    /v0/index/value/historical
+    - the API will take the following arguments:
         - effective_date
         - index_name
         - index_id
-    - /v0/index/values/historical will return json with the following lists:
-        - ticker_name, ticker_id
+    - the API will return json with lists with dict with the following keys:
+        - ticker_name1, ticker_id1
+        - ticker_name2, ticker_id2
+        ...
 
+UI:
 client will be presented with the scrollable list of all 
     tickers that belong to that index
 - once client clicks/selects the ticker, he will be presented with a screen that shows all relevant pillars
@@ -43,4 +136,4 @@ client will be presented with the scrollable list of all
         - dscr
     - these values will be used to populate corresponding screen values
 
-- page 1 will allow client to select a public equity ticker from a portfolio
+

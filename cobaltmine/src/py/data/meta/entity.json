@@ -1,0 +1,1460 @@
+{
+  "schema_version": 1,
+  "generated": "2026-09-13",
+  "namespace": "6f2d4f1e-9c3b-5a8d-b7e4-1c0a2d5f8b93",
+  "attributes": [
+    "corporate_name",
+    "exchange_ticker",
+    "cusip",
+    "isin",
+    "cik",
+    "sec_registrant_name"
+  ],
+  "interval_semantics": "Half-open [valid_from, valid_to). null valid_from = unbounded past; null valid_to = currently in effect.",
+  "entities": [
+    {
+      "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
+      "display_name": "NVIDIA Corporation",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "NVIDIA Corporation",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "NVDA",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001045810",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "NVIDIA CORP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "11ef028b-08db-5625-b3f5-ea8b87ac96b0",
+      "display_name": "Apple Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Apple Computer, Inc.",
+            "valid_from": null,
+            "valid_to": "2007-01-09",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "Apple Inc.",
+            "valid_from": "2007-01-09",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "AAPL",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000320193",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Apple Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "291e4648-df9d-5bcc-8f15-3d62f083c9b3",
+      "display_name": "Alphabet Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Google Inc.",
+            "valid_from": null,
+            "valid_to": "2015-10-02",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "Alphabet Inc.",
+            "valid_from": "2015-10-02",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "GOOGL",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001652044",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Alphabet Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "6dfc846c-e973-56e3-87de-187fbb54c718",
+      "display_name": "Microsoft Corporation",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Microsoft Corporation",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "MSFT",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000789019",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "MICROSOFT CORP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "28cceb77-2b48-552e-bd1c-d139ea5b4223",
+      "display_name": "Amazon.com, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Amazon.com, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "AMZN",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001018724",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "AMAZON COM INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "c5a7d1a7-0b25-5223-a300-7af2f0284165",
+      "display_name": "JPMorgan Chase & Co.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "JPMorgan Chase & Co.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "JPM",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000019617",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "JPMORGAN CHASE & CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "f275d82f-d723-5419-97c0-708a3bbaf55e",
+      "display_name": "Walmart Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Walmart Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "WMT",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000104169",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Walmart Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "f859122c-5338-5b7e-b300-5ea8d7a29d73",
+      "display_name": "Visa Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Visa Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "V",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001403161",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "VISA INC.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "c1a7295a-7728-5b6e-a820-910f23159325",
+      "display_name": "Johnson & Johnson",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Johnson & Johnson",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "JNJ",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000200406",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "JOHNSON & JOHNSON",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "ddcdeb23-bf16-505f-abce-adb177de1f34",
+      "display_name": "Cisco Systems, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Cisco Systems, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "CSCO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000858877",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "CISCO SYSTEMS, INC.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "e6352b9a-78ff-572b-aee4-6346d15aca64",
+      "display_name": "Chevron Corporation",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "ChevronTexaco Corporation",
+            "valid_from": "2001-10-09",
+            "valid_to": "2005-05-09",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "Chevron Corporation",
+            "valid_from": "2005-05-09",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "CVX",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000093410",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "CHEVRON CORP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "f66bcfbb-c883-5933-b271-6bee01aa41ef",
+      "display_name": "The Coca-Cola Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Coca-Cola Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "KO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000021344",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "COCA COLA CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "f232f0e7-942c-54ec-ba8a-a02a387238c9",
+      "display_name": "Caterpillar Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Caterpillar Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "CAT",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000018230",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "CATERPILLAR INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "150c5e49-5f6e-5748-8319-23947b51cb02",
+      "display_name": "Merck & Co., Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Merck & Co., Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "MRK",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000310158",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Merck & Co., Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "4f5fe61f-d3e3-55a1-b368-57d9c73f1262",
+      "display_name": "UnitedHealth Group Incorporated",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "UnitedHealth Group Incorporated",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "UNH",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000731766",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "UNITEDHEALTH GROUP INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "55dba46d-7c23-50ae-a18d-9d9e80151b91",
+      "display_name": "The Procter & Gamble Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Procter & Gamble Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "PG",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000080424",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "PROCTER & GAMBLE Co",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "9e75048e-6325-52d2-af49-2f511abef888",
+      "display_name": "The Home Depot, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Home Depot, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "HD",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000354950",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "HOME DEPOT, INC.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "363400a2-8ab6-5bf9-812e-87700e18f08f",
+      "display_name": "The Goldman Sachs Group, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Goldman Sachs Group, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "GS",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000886982",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "GOLDMAN SACHS GROUP INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "da7eee00-97fe-5ef3-80c0-0c96ac9c6c1b",
+      "display_name": "Amgen Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Amgen Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "AMGN",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000318154",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "AMGEN INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "0eb243fe-c587-54e5-bd07-71e936e968a0",
+      "display_name": "American Express Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "American Express Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "AXP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000004962",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "AMERICAN EXPRESS CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "b793ac94-2eb3-5cb2-b3c4-48474208166d",
+      "display_name": "International Business Machines Corporation",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "International Business Machines Corporation",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "IBM",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000051143",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "INTERNATIONAL BUSINESS MACHINES CORP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "6e98672c-9838-5750-9d9f-05b0d3c0e7de",
+      "display_name": "Salesforce, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "salesforce.com, inc.",
+            "valid_from": null,
+            "valid_to": "2022-04-04",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "Salesforce, Inc.",
+            "valid_from": "2022-04-04",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "CRM",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001108524",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Salesforce, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "805b82b2-bb09-5b69-86b7-17a1572fa6f8",
+      "display_name": "McDonald's Corporation",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "McDonald's Corporation",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "MCD",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000063908",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "MCDONALDS CORP",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "40ee04d7-df36-5069-820a-7bb3cc2b4ba9",
+      "display_name": "The Walt Disney Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Walt Disney Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "DIS",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001744489",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Walt Disney Co",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "14e94fbc-382d-5be3-90c7-fa6a8d982e44",
+      "display_name": "The Boeing Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Boeing Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "BA",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000012927",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "BOEING CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "1fd1ab31-5d59-574c-86a9-9685da1db4cb",
+      "display_name": "3M Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Minnesota Mining and Manufacturing Company",
+            "valid_from": null,
+            "valid_to": "2002-06-01",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "3M Company",
+            "valid_from": "2002-06-01",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "MMM",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000066740",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "3M CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "3b32e101-4ee8-5548-a70e-f7d014d3eabd",
+      "display_name": "The Sherwin-Williams Company",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Sherwin-Williams Company",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "SHW",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000089800",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "SHERWIN WILLIAMS CO",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "090f7f74-900a-54b2-8aba-1babb362c7f9",
+      "display_name": "The Travelers Companies, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "The Travelers Companies, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "TRV",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000086312",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "TRAVELERS COMPANIES, INC.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "6be71cbc-08ec-5b92-a495-069c0ac3191d",
+      "display_name": "Honeywell International Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Honeywell International Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "HON",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000773840",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "HONEYWELL INTERNATIONAL INC",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "3f079c26-3be3-567d-aa0d-83fb96eab25e",
+      "display_name": "NIKE, Inc.",
+      "in_djia": true,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "NIKE, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "NKE",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0000320187",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "NIKE, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    },
+    {
+      "entity_id": "ca3a47f4-83f3-532a-803b-b2926f2b4f8c",
+      "display_name": "Meta Platforms, Inc.",
+      "in_djia": false,
+      "attributes": {
+        "corporate_name": [
+          {
+            "value": "Facebook, Inc.",
+            "valid_from": null,
+            "valid_to": "2021-10-28",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "Meta Platforms, Inc.",
+            "valid_from": "2021-10-28",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "exchange_ticker": [
+          {
+            "value": "FB",
+            "valid_from": null,
+            "valid_to": "2022-06-09",
+            "source": "manual:corporate-action",
+            "verified": false
+          },
+          {
+            "value": "META",
+            "valid_from": "2022-06-09",
+            "valid_to": null,
+            "source": "stockanalysis.com/list/dow-jones-stocks@2026-09-05",
+            "verified": true
+          }
+        ],
+        "cik": [
+          {
+            "value": "0001326801",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "sec_registrant_name": [
+          {
+            "value": "Meta Platforms, Inc.",
+            "valid_from": null,
+            "valid_to": null,
+            "source": "sec:company_tickers.json@2026-09-12",
+            "verified": true
+          }
+        ],
+        "cusip": [],
+        "isin": []
+      }
+    }
+  ]
+}
