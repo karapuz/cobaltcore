@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Download, Settings, RotateCcw } from 'lucide-react';
 import authService from '../services/authService';
 import RangeEditorModal from './RangeEditorModal';
+import VelocityEditorModal, {
+  VELOCITY_FIELDS,
+  asAnnualGrowth,
+} from './VelocityEditorModal';
 
 // Forecast columns rendered after VALUE / RANK. Field names match the
 // `forecast_*` keys returned by /v0/pillar/values/historical.
@@ -41,22 +45,23 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
   const [editedWeights, setEditedWeights] = useState({});
   const [editedRanges, setEditedRanges] = useState({});
   const [rangeModalPillar, setRangeModalPillar] = useState(null);
+  const [velocityModalOpen, setVelocityModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const { index, ticker } = analysisData || {};
 
-  useEffect(() => {
-    if (ticker) {
-      loadPillarData();
-    }
-  }, [ticker]);
+  // Depend on the entity UUID, not the ticker object: analysisData is
+  // rebuilt on every parent render, so a `[ticker]` dependency refetches on
+  // renders where nothing about the selection actually changed.
+  const tickerId = ticker?.ticker_id;
 
-  const loadPillarData = async () => {
+  const loadPillarData = useCallback(async () => {
+    if (!tickerId) return;
     setLoading(true);
     setError(null);
     try {
-      const response = await authService.getPillarValues(ticker.ticker_id);
+      const response = await authService.getPillarValues(tickerId);
       setData(response);
       const weights = {};
       const ranges = {};
@@ -71,7 +76,11 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tickerId]);
+
+  useEffect(() => {
+    loadPillarData();
+  }, [loadPillarData]);
 
   const handleWeightChange = (pillarId, value) => {
     const numValue = parseFloat(value) / 100;
@@ -79,6 +88,43 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       ...prev,
       [pillarId]: isNaN(numValue) ? 0 : numValue
     }));
+  };
+
+  // Velocity has its own commit because it is persisted server-side, unlike
+  // weights and ranges which live for one request. Folding it into Apply
+  // would make one button mean two different things.
+  const handleCommitVelocity = async (velocity, note) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.updateVelocity(ticker.ticker_id, velocity, note);
+      const response = await authService.recalculatePillars(
+        ticker.ticker_id, editedWeights, editedRanges
+      );
+      setData(response);
+      setVelocityModalOpen(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetVelocity = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.resetVelocity(ticker.ticker_id);
+      const response = await authService.recalculatePillars(
+        ticker.ticker_id, editedWeights, editedRanges
+      );
+      setData(response);
+      setVelocityModalOpen(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleApplyChanges = async () => {
@@ -130,6 +176,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
   const totalWeight = Object.values(editedWeights).reduce((sum, w) => sum + (w || 0), 0);
   const weightsValid = Math.abs(totalWeight - 1) < 0.001;
 
+
   const handleDownloadCSV = () => {
     if (!data) return;
     const lines = [
@@ -139,7 +186,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       ['Pillar', 'Value', 'Rank',
         ...FORECAST_HORIZONS.flatMap(h => [`${h.label} Value`, `${h.label} Rank`]),
         'Score Rank', 'Weight'].join(','),
-      ...data.pillars.map(p =>
+      ...(data.pillars || []).map(p =>
         [p.name, p.formatted_value, p.rank,
           ...FORECAST_HORIZONS.flatMap(h => [p[`${h.key}_formatted_value`], p[`${h.key}_rank`]]),
           (p.blended_numeric_rank ?? 0).toFixed(2),
@@ -229,7 +276,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.pillars.map((pillar, idx) => (
+                  {(data.pillars || []).map((pillar, idx) => (
                     <tr key={pillar.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-4 font-semibold text-gray-900">
                         <div className="flex items-center gap-2">
@@ -290,6 +337,43 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                 </tfoot>
               </table>
             </div>
+
+            {/* Projection Velocity — edit mode only. In view mode the
+                velocity is an input to the numbers already on screen, not
+                something to read on its own. */}
+            {editMode && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+                <div className="bg-gray-800 text-white px-4 py-3 flex items-center justify-between">
+                  <h3 className="font-bold text-sm">PROJECTION VELOCITY</h3>
+                  <span className="text-xs text-gray-300">
+                    {data.velocity_is_default
+                      ? 'defaults (never customised)'
+                      : `revision ${data.velocity_revision}`}
+                  </span>
+                </div>
+
+                <div className="px-4 py-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-600">
+                      {VELOCITY_FIELDS
+                        .filter(f => Number((data.velocity || {})[f.key]) !== 1)
+                        .map(f => `${f.label} ${asAnnualGrowth((data.velocity || {})[f.key])}`)
+                        .join(' · ') || 'All financials held flat'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Persisted per entity — committed separately from weights and ranges.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setVelocityModalOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2 border-2 border-gray-800 rounded-lg text-gray-800 font-semibold hover:bg-gray-50 transition whitespace-nowrap"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Edit Velocity
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* DSCR Notching Section */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -392,11 +476,25 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                 Weights must sum to 100% (currently {Math.round(totalWeight * 100)}%)
               </p>
             )}
+
           </>
         ) : null}
       </div>
 
       {/* Range Editor Modal */}
+      {velocityModalOpen && data && (
+        <VelocityEditorModal
+          tickerLabel={`${ticker.ticker_symbol} — ${ticker.ticker_name}`}
+          velocity={data.velocity}
+          revision={data.velocity_revision}
+          isDefault={data.velocity_is_default}
+          loading={loading}
+          onCommit={handleCommitVelocity}
+          onReset={handleResetVelocity}
+          onClose={() => setVelocityModalOpen(false)}
+        />
+      )}
+
       {rangeModalPillar && (
         <RangeEditorModal
           pillar={rangeModalPillar}

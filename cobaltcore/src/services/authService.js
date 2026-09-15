@@ -316,18 +316,57 @@ class AuthService {
     return data;
   }
 
-  async recalculatePillars(tickerId, weights, ranges, effectiveDate = null) {
+  // `velocity` is a partial projection-velocity mapping. Sending it persists
+  // a new revision server-side before the recalculation runs; omit it to
+  // leave the stored velocity untouched.
+  async recalculatePillars(tickerId, weights, ranges, effectiveDate = null, velocity = null) {
     const response = await this._authFetch(`${API_URL}/v0/pillar/recalculate`, {
       method: 'POST',
       body: JSON.stringify({
         ticker_id: tickerId,
         effective_date: effectiveDate,
         weights,
-        ranges
+        ranges,
+        ...(velocity ? { velocity } : {})
       }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || 'Failed to recalculate');
+    return data;
+  }
+
+  async getVelocity(tickerId) {
+    const response = await this._authFetch(
+      `${API_URL}/v0/model/velocity?ticker_id=${encodeURIComponent(tickerId)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch velocity');
+    return data;
+  }
+
+  async getVelocityHistory(tickerId) {
+    const response = await this._authFetch(
+      `${API_URL}/v0/model/velocity/history?ticker_id=${encodeURIComponent(tickerId)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to fetch velocity history');
+    return data;
+  }
+
+  async updateVelocity(tickerId, velocity, note = null) {
+    const response = await this._authFetch(`${API_URL}/v0/model/velocity`, {
+      method: 'PUT',
+      body: JSON.stringify({ ticker_id: tickerId, velocity, note }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to commit velocity');
+    return data;
+  }
+
+  async resetVelocity(tickerId) {
+    const response = await this._authFetch(
+      `${API_URL}/v0/model/velocity?ticker_id=${encodeURIComponent(tickerId)}`,
+      { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to reset velocity');
     return data;
   }
 }

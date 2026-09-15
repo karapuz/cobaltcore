@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
+  "model_version": "v0",
+  "revisions": [
+    {
+      "revision": 1,
+      "velocity": {
+        "revenue": 1.1,
+        "ebitda": 1.02,
+        "free_cash_flow": 1.0,
+        "debt": 1.0,
+        "total_debt": 1.0,
+        "net_debt": 1.0,
+        "interest": 1.01,
+        "operating_cash_flow": 1.0,
+        "short_term_debt": 1.0
+      },
+      "updated_at": "2026-09-14T23:01:25+00:00",
+      "actor": null,
+      "note": null
+    }
+  ]
+}
