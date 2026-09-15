@@ -19,6 +19,23 @@
       "updated_at": "2026-09-14T23:01:25+00:00",
       "actor": null,
       "note": null
+    },
+    {
+      "revision": 2,
+      "velocity": {
+        "revenue": 1.05,
+        "ebitda": 1.02,
+        "free_cash_flow": 1.0,
+        "debt": 1.0,
+        "total_debt": 1.0,
+        "net_debt": 1.0,
+        "interest": 1.01,
+        "operating_cash_flow": 1.0,
+        "short_term_debt": 1.0
+      },
+      "updated_at": "2026-09-15T00:08:41+00:00",
+      "actor": null,
+      "note": null
     }
   ]
 }
