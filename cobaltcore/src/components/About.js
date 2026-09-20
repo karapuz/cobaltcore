@@ -174,9 +174,9 @@ export default function About({ user, onBack }) {
               </p>
             </div>
 
-            {/* Ilya Presman */}
+            {/* CTO */}
             <div className="border-l-4 border-indigo-600 pl-6 py-2">
-              <h4 className="text-lg font-bold text-gray-900 mb-1">Ilya Presman, CTO/co-Founder</h4>
+              <h4 className="text-lg font-bold text-gray-900 mb-1">**** *******, CTO/co-Founder</h4>
               <p className="text-gray-700 leading-relaxed">
                 Ilya has more than 30+ years working in the finance sector (e.g., Bloomberg, Goldman Sachs, JPMorgan, Tudor 
                 Investment), and fintech startups (Addepar, Carta). Ilya has extensive expertise in scalable architecture, 
