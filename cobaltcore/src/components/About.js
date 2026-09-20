@@ -176,9 +176,9 @@ export default function About({ user, onBack }) {
 
             {/* CTO */}
             <div className="border-l-4 border-indigo-600 pl-6 py-2">
-              <h4 className="text-lg font-bold text-gray-900 mb-1">**** *******, CTO/co-Founder</h4>
+              <h4 className="text-lg font-bold text-gray-900 mb-1">CTO/co-Founder</h4>
               <p className="text-gray-700 leading-relaxed">
-                Ilya has more than 30+ years working in the finance sector (e.g., Bloomberg, Goldman Sachs, JPMorgan, Tudor 
+                Our CTO has more than 30+ years working in the finance sector (e.g., Bloomberg, Goldman Sachs, JPMorgan, Tudor 
                 Investment), and fintech startups (Addepar, Carta). Ilya has extensive expertise in scalable architecture, 
                 software design and financial modelling with graduate degrees in Computational Finance (CMU) and Information 
                 Systems (NYU).
