@@ -1,41 +1,179 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "entity_id": "c51dab33-e003-5c1d-9216-e86c64bdc386",
   "model_version": "v0",
-  "revisions": [
-    {
-      "revision": 1,
-      "velocity": {
-        "revenue": 1.1,
-        "ebitda": 1.02,
-        "free_cash_flow": 1.0,
-        "debt": 1.0,
-        "total_debt": 1.0,
-        "net_debt": 1.0,
-        "interest": 1.01,
-        "operating_cash_flow": 1.0,
-        "short_term_debt": 1.0
-      },
-      "updated_at": "2026-09-14T23:01:25+00:00",
-      "actor": null,
-      "note": null
+  "components": {
+    "weights": {
+      "revisions": [
+        {
+          "revision": 1,
+          "value": {
+            "revenue_scale": 0.1,
+            "ebitda_margin": 0.2,
+            "fcf_debt": 0.2,
+            "td_ebitda": 0.2,
+            "nd_ebitda": 0.15,
+            "ebitda_interest": 0.15
+          },
+          "updated_at": "2026-09-15T00:29:54+00:00",
+          "actor": null,
+          "note": "edited via recalculate"
+        },
+        {
+          "revision": 2,
+          "value": {
+            "revenue_scale": 0.1,
+            "ebitda_margin": 0.2,
+            "fcf_debt": 0.2,
+            "td_ebitda": 0.2,
+            "nd_ebitda": 0.15,
+            "ebitda_interest": 0.15
+          },
+          "updated_at": "2026-09-15T00:30:43+00:00",
+          "actor": null,
+          "note": "edited via recalculate"
+        }
+      ]
     },
-    {
-      "revision": 2,
-      "velocity": {
-        "revenue": 1.05,
-        "ebitda": 1.02,
-        "free_cash_flow": 1.0,
-        "debt": 1.0,
-        "total_debt": 1.0,
-        "net_debt": 1.0,
-        "interest": 1.01,
-        "operating_cash_flow": 1.0,
-        "short_term_debt": 1.0
-      },
-      "updated_at": "2026-09-15T00:08:41+00:00",
-      "actor": null,
-      "note": null
+    "ranges": {
+      "revisions": [
+        {
+          "revision": 1,
+          "value": {
+            "revenue_scale": [
+              100.0,
+              50.0,
+              25.0,
+              12.5,
+              6.0,
+              3.0,
+              1.5,
+              1.0
+            ],
+            "ebitda_margin": [
+              0.35,
+              0.3,
+              0.25,
+              0.2,
+              0.15,
+              0.1,
+              0.05,
+              0.02
+            ],
+            "fcf_debt": [
+              1.0,
+              0.5,
+              0.3,
+              0.2,
+              0.15,
+              0.1,
+              0.05,
+              0.02
+            ],
+            "td_ebitda": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0,
+              7.0,
+              8.0
+            ],
+            "nd_ebitda": [
+              0.5,
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            "ebitda_interest": [
+              15.0,
+              10.0,
+              8.0,
+              6.0,
+              4.0,
+              3.0,
+              2.0,
+              1.5
+            ]
+          },
+          "updated_at": "2026-09-15T00:29:54+00:00",
+          "actor": null,
+          "note": "edited via recalculate"
+        },
+        {
+          "revision": 2,
+          "value": {
+            "revenue_scale": [
+              90.0,
+              50.0,
+              25.0,
+              12.5,
+              6.0,
+              3.0,
+              1.5,
+              1.0
+            ],
+            "ebitda_margin": [
+              0.35,
+              0.3,
+              0.25,
+              0.2,
+              0.15,
+              0.1,
+              0.05,
+              0.02
+            ],
+            "fcf_debt": [
+              1.0,
+              0.5,
+              0.3,
+              0.2,
+              0.15,
+              0.1,
+              0.05,
+              0.02
+            ],
+            "td_ebitda": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0,
+              7.0,
+              8.0
+            ],
+            "nd_ebitda": [
+              0.5,
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            "ebitda_interest": [
+              15.0,
+              10.0,
+              8.0,
+              6.0,
+              4.0,
+              3.0,
+              2.0,
+              1.5
+            ]
+          },
+          "updated_at": "2026-09-15T00:30:43+00:00",
+          "actor": null,
+          "note": "edited via recalculate"
+        }
+      ]
     }
-  ]
+  }
 }

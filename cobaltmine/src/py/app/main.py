@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.data.config import get_settings
 from app.data.database import engine, Base
 from app.routers import users
 from app.profile import portfolio, scenarios, scenario_surface
@@ -10,6 +11,8 @@ from app.generators import credit_score, index_analysis
 # ─────────────────────────────────────
 # App setup
 # ─────────────────────────────────────
+settings = get_settings()
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -18,9 +21,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Origins come from CORS_ORIGINS in the environment. In production the
+# React build is served from the same domain as the API, so the browser
+# makes same-origin requests and this middleware is effectively unused.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,13 +62,16 @@ async def internal_error_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Local development only. In production systemd runs uvicorn bound to
+    # 127.0.0.1 with a single worker; nginx is the only public listener.
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
 """
-uvicorn app.main:app --reload --port 8000
+Local:
+    uvicorn app.main:app --reload --port 8000
 
-uvicorn app:main --reload --port 8000
+Production (single worker — the JSON model store is not multi-process safe):
+    uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 
-curl http://localhost:8000/api/health
-
+    curl http://localhost:8000/api/health
 """

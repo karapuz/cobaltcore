@@ -1,4 +1,10 @@
-const API_URL = 'http://localhost:8000/api';
+// In production the React build is served from the same domain as the API,
+// so '/api' is a same-origin path and no CORS is involved.
+// For local development, set REACT_APP_API_URL=http://localhost:8000/api
+// in a .env file at the project root.
+// Note: REACT_APP_* values are baked in at `npm run build` time, not read
+// at runtime — rebuild after changing them.
+const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 class AuthService {
   // ─────────────────────────────────────
