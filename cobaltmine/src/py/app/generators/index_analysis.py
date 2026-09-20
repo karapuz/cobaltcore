@@ -1,9 +1,11 @@
+import copy
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.data.models import User
 from app.auth import get_current_user
 from entity import entity_store as entities
-from model_data import velocity_store as velocities
+from model_data import model_store as model
 
 router = APIRouter()
 
@@ -327,7 +329,7 @@ def build_forecast(actual_basic: dict, years: int = 1, velocity: dict = None):
     velocity. `velocity` is the entity's stored mapping; defaults are used
     when it is omitted.
     """
-    velocity = velocity or velocities.DEFAULT_VELOCITY
+    velocity = velocity or model.DEFAULT_VELOCITY
     return {
         key: value * (velocity[key] ** years)
         for key, value in actual_basic.items()
@@ -363,13 +365,22 @@ def _build_pillar_response(ticker_id, entity_id=None, weights=None,
                            ranges=None, as_of=None):
     # Read the velocity at build time, never at import, so the latest
     # persisted revision is the one that scores this request.
-    velocity_record = (velocities.get_record(entity_id) if entity_id
-                       else {"velocity": dict(velocities.DEFAULT_VELOCITY),
-                             "revision": 0, "is_default": True})
-    velocity = velocity_record["velocity"]
+    # All three model inputs are per entity and persisted. Read them at
+    # build time, never at import, so the latest revision is what scores
+    # this request. A request-supplied weights/ranges has already been
+    # persisted by the caller, so there is one source of truth either way.
+    if entity_id:
+        records = model.get_all(entity_id)
+    else:
+        records = {name: {"value": copy.deepcopy(spec["default"]),
+                          "revision": 0, "is_default": True}
+                   for name, spec in model.COMPONENTS.items()}
+
+    velocity_record = records["velocity"]
+    velocity = velocity_record["value"]
+    weights = weights or records["weights"]["value"]
+    ranges = ranges or records["ranges"]["value"]
     """Build full pillar response for a ticker"""
-    weights = weights or DEFAULT_WEIGHTS
-    ranges = ranges or DEFAULT_RANGES
     
     ticker_data = MOCK_BASIC_VALUES[ticker_id]
     actual_basic = ticker_data.get("actual", ticker_data)
@@ -454,6 +465,10 @@ def _build_pillar_response(ticker_id, entity_id=None, weights=None,
         "velocity": velocity,
         "velocity_revision": velocity_record["revision"],
         "velocity_is_default": velocity_record["is_default"],
+        "weights_revision": records["weights"]["revision"],
+        "weights_is_default": records["weights"]["is_default"],
+        "ranges_revision": records["ranges"]["revision"],
+        "ranges_is_default": records["ranges"]["is_default"],
         "forecast_horizons": FORECAST_HORIZONS,
         "score_blend": SCORE_BLEND,
         "dscr": {
@@ -538,73 +553,93 @@ async def recalculate_pillars(
     if not entity_id:
         raise HTTPException(status_code=400, detail="ticker_id (entity UUID) is required")
 
-    # A velocity sent with a recalculate is an edit, so it is persisted
-    # before the response is built — not applied for this request only.
-    if request_data.get("velocity"):
+    # Weights, ranges and velocity sent with a recalculate are edits, so
+    # each is persisted as its own revision before the response is built.
+    # None of them is a preview: the stored value is what every later run
+    # for this entity will use.
+    actor = getattr(current_user, "username", None)
+    for component in ("weights", "ranges", "velocity"):
+        supplied = request_data.get(component)
+        if not supplied:
+            continue
         try:
-            velocities.update(entity_id, request_data["velocity"],
-                              actor=getattr(current_user, "username", None),
-                              note="edited via recalculate")
-        except velocities.InvalidVelocity as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
+            model.update(entity_id, component, supplied, actor=actor,
+                         note=request_data.get("note") or "edited via recalculate")
+        except (model.InvalidModelInput, model.UnknownComponent) as exc:
+            raise HTTPException(status_code=400,
+                                detail=f"{component}: {exc}")
 
+    # Read back from the store rather than using the request body, so the
+    # response always reflects what was actually persisted.
     return build_pillar_response(
-        entity_id,
-        weights=request_data.get("weights"),
-        ranges=request_data.get("ranges"),
-        as_of=request_data.get("effective_date"),
-    )
+        entity_id, as_of=request_data.get("effective_date"))
 
 
-@router.get("/v0/model/velocity")
-async def get_velocity(
+@router.get("/v0/model/{component}")
+async def get_model_component(
+    component: str,
     ticker_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Projection velocity in effect for one entity."""
-    return velocities.get_record(ticker_id)
+    """Live value and revision of one model component for an entity."""
+    try:
+        return model.get_record(ticker_id, component)
+    except model.UnknownComponent as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
-@router.get("/v0/model/velocity/history")
-async def get_velocity_history(
+@router.get("/v0/model/{component}/history")
+async def get_model_history(
+    component: str,
     ticker_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Every revision ever persisted for this entity."""
-    return {"ticker_id": ticker_id, "revisions": velocities.history(ticker_id)}
+    """Every revision ever persisted for one component."""
+    try:
+        return {"ticker_id": ticker_id, "component": component,
+                "revisions": model.history(ticker_id, component)}
+    except model.UnknownComponent as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
-@router.put("/v0/model/velocity")
-async def put_velocity(
+@router.put("/v0/model/{component}")
+async def put_model_component(
+    component: str,
     request_data: dict,
     current_user: User = Depends(get_current_user)
 ):
     """
-    Persist a new velocity revision.
+    Persist a new revision of one component.
 
-    Accepts a partial mapping — only the fields sent are changed, the rest
-    carry over from the revision in effect.
+    Accepts a partial mapping — only the keys sent change, the rest carry
+    over from the revision in effect. The merged result is validated, which
+    is what lets a single weight be checked against the sum-to-1 rule.
     """
     entity_id = request_data.get("ticker_id")
     if not entity_id:
         raise HTTPException(status_code=400, detail="ticker_id (entity UUID) is required")
-    velocity = request_data.get("velocity")
-    if not velocity:
-        raise HTTPException(status_code=400, detail="velocity is required")
+    value = request_data.get("value") or request_data.get(component)
+    if not value:
+        raise HTTPException(status_code=400, detail=f"{component} value is required")
     try:
-        return velocities.update(
-            entity_id, velocity,
-            actor=getattr(current_user, "username", None),
-            note=request_data.get("note"))
-    except velocities.InvalidVelocity as exc:
+        return model.update(entity_id, component, value,
+                            actor=getattr(current_user, "username", None),
+                            note=request_data.get("note"))
+    except model.UnknownComponent as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except model.InvalidModelInput as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
 
-@router.delete("/v0/model/velocity")
-async def reset_velocity(
+@router.delete("/v0/model/{component}")
+async def reset_model_component(
+    component: str,
     ticker_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Record an explicit return to the default velocity."""
-    return velocities.reset(ticker_id,
-                            actor=getattr(current_user, "username", None))
+    """Record an explicit return to the default value for one component."""
+    try:
+        return model.reset(ticker_id, component,
+                           actor=getattr(current_user, "username", None))
+    except model.UnknownComponent as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
