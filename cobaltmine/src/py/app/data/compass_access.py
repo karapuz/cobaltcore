@@ -55,7 +55,7 @@ def getdata(symbol, year, attributes) -> dict:
         net_debt = total_debt - cash_eq
 
         return {
-            "revenue": revenue, 
+            "revenue": revenue/1000000000, 
             "ebitda": ebitda,
             "free_cash_flow": free_cash_flow,
             "debt": total_debt,
