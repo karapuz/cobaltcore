@@ -7,9 +7,10 @@ import rating.conf.pallete_conf as pallete_conf
 import rating.conf.report_run_env as report_run_env
 # from rating.model.version_repo.comp_r_20260819 import rating_model
 import rating.model.version_repo.comp_r_20260819.rating_model_engine as rating_model_engine
+import os
 
 past_periods = 10
-env_name = "20260609"
+env_name = os.getenv("ENV_DATA_NAME")
 pallette = "STEEL_BLUE"
 
 
