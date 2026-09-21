@@ -228,6 +228,7 @@ def get_range_display(rank, breakpoints, is_increasing):
 def format_pillar_value(pillar_id, value):
     """Format pillar value for display"""
     if pillar_id == "revenue_scale":
+        value = value/1000000000
         return f"${value:.1f}B"
     elif pillar_id in ["ebitda_margin", "fcf_debt"]:
         return f"{value*100:.1f}%"
