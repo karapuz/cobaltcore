@@ -69,23 +69,171 @@ DEFAULT_VELOCITY = {
     "short_term_debt": 1.0,
 }
 
-DEFAULT_WEIGHTS = {
-    "revenue_scale": 0.15,
-    "ebitda_margin": 0.15,
-    "fcf_debt": 0.20,
-    "td_ebitda": 0.20,
-    "nd_ebitda": 0.15,
-    "ebitda_interest": 0.15,
+# 6 pillars with weights summing to 100%
+DEFAULT_RANGES = {
+    "revenue_scale":    [60.0, 30.0, 15.0,  4.0,  1.0,  0.1,  0.02],
+    "ebitda_margin":    [ 0.5,  0.4,  0.3,  0.2,  0.15, 0.10, 0.05],
+    "fcf_debt":         [ 0.45, 0.35, 0.25, 0.15, 0.08, 0.0, -0.08],
+    "td_ebitda":        [ 0.5,  1.0,  2.0,  3.5,  5.0,  7.0,  9.5],
+    "nd_ebitda":        [ 0.0,  0.5,  1.5,  3.0,  4.5,  6.8,  9.3],
+    "ebitda_interest":  [50.0, 30.0, 15.0,  7.0,  4.0,  1.5,  1.0],
 }
 
-DEFAULT_RANGES = {
-    "revenue_scale": [100, 50, 25, 12.5, 6, 3, 1.5, 1],
-    "ebitda_margin": [0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.02],
-    "fcf_debt": [1.0, 0.5, 0.3, 0.2, 0.15, 0.10, 0.05, 0.02],
-    "td_ebitda": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
-    "nd_ebitda": [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-    "ebitda_interest": [15, 10, 8, 6, 4, 3, 2, 1.5],
+
+# Weights sum to 100%
+DEFAULT_WEIGHTS = {
+    "revenue_scale":    0.15,
+    "ebitda_margin":    0.15,
+    "fcf_debt":         0.20,
+    "td_ebitda":        0.20,
+    "nd_ebitda":        0.15,
+    "ebitda_interest":  0.15,
 }
+
+PILLAR_DIRECTION = {
+    "revenue_scale": True,      # higher = better
+    "ebitda_margin": True,      # higher = better
+    "fcf_debt": True,           # higher = better
+    "td_ebitda": False,         # lower = better
+    "nd_ebitda": False,         # lower = better
+    "ebitda_interest": True,    # higher = better
+}
+
+PILLAR_NAMES = {
+    "revenue_scale": "Revenue Scale",
+    "ebitda_margin": "EBITDA Margin",
+    "fcf_debt": "Free Cash Flow / Debt",
+    "td_ebitda": "Total Debt / EBITDA",
+    "nd_ebitda": "Net Debt / EBITDA",
+    "ebitda_interest": "EBITDA / Interest",
+}
+
+# Numeric rank to letter rating (0 = best, 8 = worst)
+RANK_TO_RATING = {
+    0: "AAA",
+    1: "AA+",
+    2: "AA",
+    3: "AA-",
+    4: "A+",
+    5: "A",
+    6: "A-",
+    7: "BBB+",
+    8: "BBB",
+}
+
+# Ordered rating scale for notch adjustments
+RATING_ORDER = [
+    "AAA", "AA+", "AA", "AA-", "A+", "A", "A-",
+    "BBB+", "BBB", "BBB-", "BB+", "BB", "BB-",
+    "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C", "D"
+]
+
+RATING_SCALE = [
+    ("AAA",   0.0,  1.5),
+    ("AA+",   1.5,  2.5),
+    ("AA",    2.5,  3.5),
+    ("AA-",   3.5,  4.5),
+    ("A+",    4.5,  5.5),
+    ("A",     5.5,  6.5),
+    ("A-",    6.5,  7.5),
+    ("BBB+",  7.5,  8.5),
+    ("BBB",   8.5,  9.5),
+    ("BBB-",  9.5, 10.5),
+    ("BB+",  10.5, 11.5),
+    ("BB",   11.5, 12.5),
+    ("BB-",  12.5, 13.5),
+    ("B+",   13.5, 14.5),
+    ("B",    14.5, 15.5),
+    ("B-",   15.5, 16.5),
+    ("CCC+", 16.5, 17.5),
+    ("CCC",  17.5, 18.5),
+    ("CCC-", 18.5, 19.5),
+    ("CC",   19.5, 20.5),
+]
+
+"""
+AAA:    1
+AA+:    2
+AA:     3
+AA-:    4
+A+:     5
+A:      6
+A-:     7
+BBB+:   8
+BBB:    9
+BBB-:   10
+BB+:    11
+BB:     12
+BB-:    13
+B+:     14
+B:      15
+B-:     16
+CCC+:   17
+CCC:    18
+CCC-:   19
+CC:     20
+
+Revenue
+>$60
+$30.0 - 60.0
+$15.0 - 30.0
+$4.0 - 15.0
+$1.0 - 4.0
+$0.1 - 1.0
+$0.02 - 0.1
+<$0.02
+
+EBITDA Margin (%)
+>50%
+40%–50%
+30%–40%
+20%–30%
+15%–20%
+10%–15%
+5%–10%
+<5%
+
+"FCF / Total Debt (%)
+>45%
+35%–45%
+25%–35%
+15%–25%
+8%–15%
+0%–8%
+(8%)–0%
+<(8%)
+
+Total Debt / EBITDA (x)
+<0.5x
+0.5x–1.0x
+1.0x–2.0x
+2.0x–3.5x
+3.5x–5.0x
+5.0x–7.0x
+7.0x –9.5x
+>9.5x
+
+Net Debt / EBITDA (x)
+<0.0x
+0.0x–0.5x
+0.5x–1.5x
+1.5x–3.0x
+3.0x–4.5x
+4.5x–6.8x
+6.8x–9.3x
+>9.3x
+
+EBITDA / Interest Coverage
+>50.0x
+30.0x – 50.0x
+15.0x – 30.0x
+7.0x – 15.0x
+4.0x –7.0x
+1.5x – 4.0x
+1.0x – 1.5x
+<1.0x
+"""
+
 
 VELOCITY_FIELDS = frozenset(DEFAULT_VELOCITY)
 

@@ -25,92 +25,11 @@ router = APIRouter()
 # entities have them; the rest raise 404 rather than silently scoring
 # another company's balance sheet.
 
+from model_data.model_store import (
+    RATING_ORDER, RANK_TO_RATING, RATING_SCALE, PILLAR_DIRECTION, 
+    PILLAR_NAMES, DEFAULT_RANGES, DEFAULT_WEIGHTS
+)
 
-
-# ─────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────
-
-# 6 pillars with weights summing to 100%
-DEFAULT_RANGES = {
-    "revenue_scale": [100, 50, 25, 12.5, 6, 3, 1.5, 1],
-    "ebitda_margin": [0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.02],
-    "fcf_debt": [1.0, 0.5, 0.3, 0.2, 0.15, 0.10, 0.05, 0.02],
-    "td_ebitda": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
-    "nd_ebitda": [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-    "ebitda_interest": [15, 10, 8, 6, 4, 3, 2, 1.5],
-}
-
-# Weights sum to 100%
-DEFAULT_WEIGHTS = {
-    "revenue_scale": 0.15,
-    "ebitda_margin": 0.15,
-    "fcf_debt": 0.20,
-    "td_ebitda": 0.20,
-    "nd_ebitda": 0.15,
-    "ebitda_interest": 0.15,
-}
-
-PILLAR_DIRECTION = {
-    "revenue_scale": True,      # higher = better
-    "ebitda_margin": True,      # higher = better
-    "fcf_debt": True,           # higher = better
-    "td_ebitda": False,         # lower = better
-    "nd_ebitda": False,         # lower = better
-    "ebitda_interest": True,    # higher = better
-}
-
-PILLAR_NAMES = {
-    "revenue_scale": "Revenue Scale",
-    "ebitda_margin": "EBITDA Margin",
-    "fcf_debt": "Free Cash Flow / Debt",
-    "td_ebitda": "Total Debt / EBITDA",
-    "nd_ebitda": "Net Debt / EBITDA",
-    "ebitda_interest": "EBITDA / Interest",
-}
-
-# Numeric rank to letter rating (0 = best, 8 = worst)
-RANK_TO_RATING = {
-    0: "AAA",
-    1: "AA+",
-    2: "AA",
-    3: "AA-",
-    4: "A+",
-    5: "A",
-    6: "A-",
-    7: "BBB+",
-    8: "BBB",
-}
-
-# Ordered rating scale for notch adjustments
-RATING_ORDER = [
-    "AAA", "AA+", "AA", "AA-", "A+", "A", "A-",
-    "BBB+", "BBB", "BBB-", "BB+", "BB", "BB-",
-    "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C", "D"
-]
-
-RATING_SCALE = [
-    ("AAA",   0.0,  1.5),
-    ("AA+",   1.5,  2.5),
-    ("AA",    2.5,  3.5),
-    ("AA-",   3.5,  4.5),
-    ("A+",    4.5,  5.5),
-    ("A",     5.5,  6.5),
-    ("A-",    6.5,  7.5),
-    ("BBB+",  7.5,  8.5),
-    ("BBB",   8.5,  9.5),
-    ("BBB-",  9.5, 10.5),
-    ("BB+",  10.5, 11.5),
-    ("BB",   11.5, 12.5),
-    ("BB-",  12.5, 13.5),
-    ("B+",   13.5, 14.5),
-    ("B",    14.5, 15.5),
-    ("B-",   15.5, 16.5),
-    ("CCC+", 16.5, 17.5),
-    ("CCC",  17.5, 18.5),
-    ("CCC-", 18.5, 19.5),
-    ("CC",   19.5, 25.0),
-]
 
 # ─────────────────────────────────────
 # Helper Functions
@@ -204,6 +123,8 @@ def rank_to_rating(numeric_rank):
         return "AAA"
     if numeric_rank > 8:
         return "BBB-"
+    if numeric_rank not in RANK_TO_RATING:
+        print(f"rank_to_rating: numeric_rank={numeric_rank} not in RANK_TO_RATING")
     return RANK_TO_RATING.get(numeric_rank, "BBB")
 
 
@@ -301,8 +222,7 @@ def build_pillar_response(entity_id, weights=None, ranges=None, as_of=None):
     #     raise HTTPException(
     #         status_code=404,
     #         detail=(f"No financials loaded for {ticker_id} "
-    #                 f"({entities.get_value(entity_id, 'corporate_name', as_of)})"))
-    
+    #                 f"({entities.get_value(entity_id, 'corporate_name', as_of)})"))    
     return _build_pillar_response(ticker_id, entity_id, weights, ranges, as_of)
 
 
@@ -328,15 +248,11 @@ def _build_pillar_response(ticker_id, entity_id=None, weights=None,
     ranges = ranges or records["ranges"]["value"]
     """Build full pillar response for a ticker"""
 
-    # symbol = entities.get_value(ticker_id, "exchange_ticker")
-
     attributes = [
         "revenue", "ebitda", "free_cash_flow", "debt", "total_debt", "net_debt", "interest", 
         "operating_cash_flow", "short_term_debt"
     ]
 
-    # ticker_data = compass_access.getdata(symbol=symbol, year="2026", attributes=attributes)
-    # actual_basic = ticker_data.get("actual", ticker_data)
     actual_basic = compass_access.getdata(symbol=ticker_id, year="2025", attributes=attributes)
     print(f"actual_basic = {actual_basic}")
     actual_pillar_values = calculate_pillar_values(actual_basic)
