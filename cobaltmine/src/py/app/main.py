@@ -74,4 +74,8 @@ Production (single worker — the JSON model store is not multi-process safe):
     uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 
     curl http://localhost:8000/api/health
-"""
+
+    
+(base) root@localhost:/srv/compass-app/frontend# HOST=0.0.0.0 npm start
+
+    """
