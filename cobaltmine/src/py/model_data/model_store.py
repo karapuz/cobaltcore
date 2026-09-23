@@ -55,7 +55,7 @@ PILLAR_DIRECTION = {
     "ebitda_interest": True,
 }
 
-RANGE_BREAKPOINTS = 8   # eight cut points produce nine rating buckets
+RANGE_BREAKPOINTS = 7   # eight cut points produce nine rating buckets
 
 DEFAULT_VELOCITY = {
     "revenue": 1.03,

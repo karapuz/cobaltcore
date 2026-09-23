@@ -76,6 +76,9 @@ Production (single worker — the JSON model store is not multi-process safe):
     curl http://localhost:8000/api/health
 
     
-(base) root@localhost:/srv/compass-app/frontend# HOST=0.0.0.0 npm start
+(base) root@localhost:/srv/compass-app/frontend# 
+HOST=0.0.0.0 npm start
 
+(base) root@localhost:/srv/compass-app/backend# 
+ENV_DATA_NAME=20260920_LINODE env $(cat /etc/compass/compass.env | xargs) /srv/compass-app/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000             
     """

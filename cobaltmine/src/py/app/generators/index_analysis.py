@@ -21,10 +21,6 @@ router = APIRouter()
 # just one time-varying attribute of an entity, resolved at the effective
 # date of the request.
 
-# Financials are still keyed by ticker symbol. Only 13 of the 30 DJIA
-# entities have them; the rest raise 404 rather than silently scoring
-# another company's balance sheet.
-
 from model_data.model_store import (
     RATING_ORDER, RANK_TO_RATING, RATING_SCALE, PILLAR_DIRECTION, 
     PILLAR_NAMES, DEFAULT_RANGES, DEFAULT_WEIGHTS
