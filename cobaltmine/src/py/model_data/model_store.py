@@ -55,7 +55,7 @@ PILLAR_DIRECTION = {
     "ebitda_interest": True,
 }
 
-RANGE_BREAKPOINTS = 7   # eight cut points produce nine rating buckets
+RANGE_BREAKPOINTS = 7   # seven cut points produce eight rating buckets
 
 DEFAULT_VELOCITY = {
     "revenue": 1.03,
@@ -108,26 +108,33 @@ PILLAR_NAMES = {
     "ebitda_interest": "EBITDA / Interest",
 }
 
-# Numeric rank to letter rating (0 = best, 8 = worst)
-RANK_TO_RATING = {
-    0: "AAA",
-    1: "AA+",
-    2: "AA",
-    3: "AA-",
-    4: "A+",
-    5: "A",
-    6: "A-",
-    7: "BBB+",
-    8: "BBB",
+BREAKPOINT_TO_RATING = {
+    0: ("AAA",   1),
+    1: ("AA",    3),
+    2: ("A",     6),
+    3: ("BBB",   9),
+    4: ("BB",   12),
+    5: ("B",    15),
+    6: ("CCC",  18),
+    7: ("CC",   20),
 }
+
 
 # Ordered rating scale for notch adjustments
 RATING_ORDER = [
-    "AAA", "AA+", "AA", "AA-", "A+", "A", "A-",
-    "BBB+", "BBB", "BBB-", "BB+", "BB", "BB-",
-    "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C", "D"
+    "AAA", 
+    "AA+", "AA", "AA-", 
+    "A+", "A", "A-",
+    "BBB+", "BBB", "BBB-", 
+    "BB+", "BB", "BB-",
+    "B+", "B", "B-", 
+    "CCC+", "CCC", "CCC-", 
+    "CC", 
 ]
 
+RANK_TO_RATING = dict(enumerate(RATING_ORDER))
+
+# Numeric rank to letter rating (0 = best, 8 = worst)
 RATING_SCALE = [
     ("AAA",   0.0,  1.5),
     ("AA+",   1.5,  2.5),

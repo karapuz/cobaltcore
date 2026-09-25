@@ -39,7 +39,7 @@ the UI shows them as columns — but they do not feed the score.
 
 from model_data.model_store import (
     RATING_ORDER,
-    RANK_TO_RATING,
+    BREAKPOINT_TO_RATING,
     RATING_SCALE,
     PILLAR_DIRECTION,
     PILLAR_NAMES,
@@ -101,25 +101,38 @@ def calculate_rank(value, breakpoints, is_increasing):
 
     Breakpoints run best to worst: descending for a higher-is-better
     pillar, ascending for a lower-is-better one.
+    This should be translated to BREAKPOINT_TO_RATING, and then back to ranking 
     """
+    def breakpoint_to_rank(index):
+        if index == len(BREAKPOINT_TO_RATING):
+            return BREAKPOINT_TO_RATING[index-1][1]
+        return BREAKPOINT_TO_RATING[index][1]
+    
     if is_increasing:
         for i, bp in enumerate(breakpoints):
             if value >= bp:
-                return i
+                return breakpoint_to_rank(i)
     else:
         for i, bp in enumerate(breakpoints):
             if value <= bp:
-                return i
-    return len(breakpoints)
+                return breakpoint_to_rank(i)
+    return breakpoint_to_rank(len(breakpoints))
 
 
 def rank_to_rating(numeric_rank):
     """
-    Letter rating for an integer rank.
+    Letter rating for a pillar rank.
 
-    Fractional ranks are rejected rather than silently floored — the score
-    path deliberately avoids producing them, so one arriving here means a
-    caller is averaging ranks, which is the thing this engine does not do.
+    Ranks come from BREAKPOINT_TO_RATING and are points on the RATING_SCALE
+    axis (0, 3, 6, 9, ...), not positions in a list. So this resolves
+    through score_to_rating, the same function the final rating uses.
+    Resolving through RANK_TO_RATING instead treated the rank as a list
+    index, which returned a letter one notch worse for every breakpoint
+    below AAA and disagreed with the overall rating for the same number.
+
+    Fractional ranks are still rejected. The guard exists to catch a caller
+    averaging ranks, which is the thing this engine avoids by blending
+    values instead — score_to_rating alone would silently accept one.
     """
     if numeric_rank is None:
         return None
@@ -127,21 +140,23 @@ def rank_to_rating(numeric_rank):
         raise ValueError(
             f"rank_to_rating expects an integer rank, got {numeric_rank!r}; "
             f"blend values, not ranks")
-    numeric_rank = int(numeric_rank)
-    if numeric_rank < 0:
-        return RATING_ORDER[0]
-    worst_rank = max(RANK_TO_RATING)
-    if numeric_rank > worst_rank:
-        return RANK_TO_RATING[worst_rank]
-    return RANK_TO_RATING[numeric_rank]
+    return score_to_rating(int(numeric_rank))
 
 
 def score_to_rating(score):
-    """Letter rating for a weighted score."""
+    """
+    Letter rating for a position on the RATING_SCALE axis.
+
+    This is the single source of truth for turning a number into a letter.
+    Pillar ranks and the weighted base score live on the same axis, so both
+    resolve through here.
+    """
+    if score < RATING_SCALE[0][1]:
+        return RATING_SCALE[0][0]          # at or below the best band
     for rating, low, high in RATING_SCALE:
         if low <= score < high:
             return rating
-    return RATING_SCALE[-1][0] if score < RATING_SCALE[0][1] else "CC"
+    return RATING_SCALE[-1][0]             # beyond the worst band
 
 
 def apply_notch(rating, notch):
