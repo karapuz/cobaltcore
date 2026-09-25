@@ -1,0 +1,10 @@
+There are multiple corrections to be made:
+1. there are a few problems with the logic: 
+        - the final (blended) score should be generated in the following way:
+        - use Pillar class to represent computes related to both basic, forecasts, and blended
+   - combine basic values and all forcested values using the correct weights/ratios
+   - only then create blended rating (that is, blend values, not rankings)
+2. split index_analysis.py into "web" and "engine" portion
+3. let's call "engine" portion credit_rating.py
+4. examine the first draft of credit_rating, and fix errors
+5. create a unit test that tests "engine". Note, that "engine" module should not have any references to the web realted logic/routes etc.
