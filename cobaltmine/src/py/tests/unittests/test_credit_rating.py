@@ -12,7 +12,7 @@ engine and that is the bug, not the test.
 import unittest
 
 from model_data.model_store import (
-    DEFAULT_RANGES, DEFAULT_WEIGHTS, DEFAULT_VELOCITY, PILLAR_NAMES,
+    DEFAULT_WEIGHTS, DEFAULT_VELOCITY, PILLAR_NAMES,
 )
 import app.generators.credit_rating as engine
 from app.generators.credit_rating import (
@@ -164,46 +164,54 @@ class TestFormatPillarValue(unittest.TestCase):
 # ─────────────────────────────────────
 # Pillar
 # ─────────────────────────────────────
+TEST_RANGES = {
+    "revenue_scale":    [60.0, 30.0, 15.0,  4.0,  1.0,  0.1,  0.02],
+    "ebitda_margin":    [ 0.5,  0.4,  0.3,  0.2,  0.15, 0.10, 0.05],
+    "fcf_debt":         [ 0.45, 0.35, 0.25, 0.15, 0.08, 0.0, -0.08],
+    "td_ebitda":        [ 0.5,  1.0,  2.0,  3.5,  5.0,  7.0,  9.5],
+    "nd_ebitda":        [ 0.0,  0.5,  1.5,  3.0,  4.5,  6.8,  9.3],
+    "ebitda_interest":  [50.0, 30.0, 15.0,  7.0,  4.0,  1.5,  1.0],
+}
 
 class TestPillar(unittest.TestCase):
 
     def test_computes_its_own_rank(self):
-        p = Pillar("ebitda_margin", 0.33, DEFAULT_RANGES["ebitda_margin"])
-        self.assertEqual(p.get_actual_numeric_rank(), 1)
-        self.assertEqual(p.get_actual_rating(), "AA+")
+        p = Pillar("ebitda_margin", 0.33, TEST_RANGES["ebitda_margin"])
+        self.assertEqual(p.get_actual_numeric_rank(), 2)
+        self.assertEqual(p.get_actual_rating(), "AA")
 
     def test_explicit_rank_is_honoured(self):
         """The draft only assigned the rank in the computed branch, so this
         combination raised AttributeError."""
-        p = Pillar("fcf_debt", None, DEFAULT_RANGES["fcf_debt"], numeric_rank=0)
+        p = Pillar("fcf_debt", None, TEST_RANGES["fcf_debt"], numeric_rank=0)
         self.assertEqual(p.get_actual_numeric_rank(), 0)
         self.assertEqual(p.get_actual_rating(), "AAA")
 
     def test_formatted_value_is_a_string_not_a_tuple(self):
         """A stray trailing comma in the draft made this a 1-tuple."""
-        p = Pillar("revenue_scale", 394.3, DEFAULT_RANGES["revenue_scale"])
+        p = Pillar("revenue_scale", 394.3, TEST_RANGES["revenue_scale"])
         self.assertIsInstance(p.get_formatted_value(), str)
         self.assertEqual(p.get_formatted_value(), "$394.3B")
 
     def test_direction_comes_from_the_pillar_id(self):
         self.assertTrue(Pillar("ebitda_interest", 20.0,
-                               DEFAULT_RANGES["ebitda_interest"]).get_is_increasing())
+                               TEST_RANGES["ebitda_interest"]).get_is_increasing())
         self.assertFalse(Pillar("td_ebitda", 2.0,
-                                DEFAULT_RANGES["td_ebitda"]).get_is_increasing())
+                                TEST_RANGES["td_ebitda"]).get_is_increasing())
 
     def test_none_value_without_rank_is_rejected(self):
         with self.assertRaises(ValueError):
-            Pillar("fcf_debt", None, DEFAULT_RANGES["fcf_debt"])
+            Pillar("fcf_debt", None, TEST_RANGES["fcf_debt"])
 
     def test_unknown_pillar_id_is_rejected(self):
         with self.assertRaises(KeyError):
-            Pillar("ebtida_margin", 0.3, DEFAULT_RANGES["ebitda_margin"])
+            Pillar("ebtida_margin", 0.3, TEST_RANGES["ebitda_margin"])
 
     def test_breakpoints_are_copied_not_aliased(self):
-        bps = list(DEFAULT_RANGES["td_ebitda"])
+        bps = list(TEST_RANGES["td_ebitda"])
         p = Pillar("td_ebitda", 2.0, bps)
         bps[0] = 999
-        self.assertEqual(p.get_breakpoints()[0], 1.0)
+        self.assertEqual(p.get_breakpoints()[0], 0.5)
 
 
 # ─────────────────────────────────────
@@ -213,7 +221,7 @@ class TestPillar(unittest.TestCase):
 class TestCalculatePillarValues(unittest.TestCase):
 
     def test_returns_the_six_pillars_keyed_by_id(self):
-        result = calculate_pillar_values(basics(), DEFAULT_RANGES)
+        result = calculate_pillar_values(basics(), TEST_RANGES)
         self.assertEqual(set(result), set(engine.PILLAR_IDS))
         for pillar_id, pillar in result.items():
             self.assertEqual(pillar.get_pillar_id(), pillar_id,
@@ -222,23 +230,23 @@ class TestCalculatePillarValues(unittest.TestCase):
     def test_ebitda_interest_is_not_labelled_nd_ebitda(self):
         """The draft built all three ebitda_interest branches with the id
         'nd_ebitda', giving it the wrong direction, name and format."""
-        pillar = calculate_pillar_values(basics(), DEFAULT_RANGES)["ebitda_interest"]
+        pillar = calculate_pillar_values(basics(), TEST_RANGES)["ebitda_interest"]
         self.assertEqual(pillar.get_pillar_id(), "ebitda_interest")
         self.assertEqual(pillar.name, PILLAR_NAMES["ebitda_interest"])
         self.assertTrue(pillar.get_is_increasing(), "higher coverage is better")
 
     def test_ebitda_margin_is_the_ratio_not_raw_ebitda(self):
         """The draft passed `ebitda` where the margin belonged."""
-        pillar = calculate_pillar_values(basics(), DEFAULT_RANGES)["ebitda_margin"]
+        pillar = calculate_pillar_values(basics(), TEST_RANGES)["ebitda_margin"]
         self.assertAlmostEqual(pillar.get_actual_value(), 0.25)
 
     def test_revenue_scale_is_converted_to_billions(self):
-        pillar = calculate_pillar_values(basics(), DEFAULT_RANGES)["revenue_scale"]
+        pillar = calculate_pillar_values(basics(), TEST_RANGES)["revenue_scale"]
         self.assertAlmostEqual(pillar.get_actual_value(), 120.0)
         self.assertEqual(pillar.get_actual_numeric_rank(), 0)
 
     def test_all_ratio_values(self):
-        result = calculate_pillar_values(basics(), DEFAULT_RANGES)
+        result = calculate_pillar_values(basics(), TEST_RANGES)
         self.assertAlmostEqual(result["fcf_debt"].get_actual_value(), 0.5)
         self.assertAlmostEqual(result["td_ebitda"].get_actual_value(), 2.0)
         self.assertAlmostEqual(result["nd_ebitda"].get_actual_value(), 1.5)
@@ -246,14 +254,14 @@ class TestCalculatePillarValues(unittest.TestCase):
 
     def test_leverage_pillars_use_the_right_numerators(self):
         result = calculate_pillar_values(
-            basics(total_debt=90.0 * B, net_debt=30.0 * B), DEFAULT_RANGES)
+            basics(total_debt=90.0 * B, net_debt=30.0 * B), TEST_RANGES)
         self.assertAlmostEqual(result["td_ebitda"].get_actual_value(), 3.0)
         self.assertAlmostEqual(result["nd_ebitda"].get_actual_value(), 1.0)
 
     def test_custom_ranges_change_the_rank_not_the_value(self):
-        tight = dict(DEFAULT_RANGES,
+        tight = dict(TEST_RANGES,
                      ebitda_margin=[0.90, 0.80, 0.70, 0.60, 0.50, 0.40, 0.30, 0.20])
-        default = calculate_pillar_values(basics(), DEFAULT_RANGES)["ebitda_margin"]
+        default = calculate_pillar_values(basics(), TEST_RANGES)["ebitda_margin"]
         strict = calculate_pillar_values(basics(), tight)["ebitda_margin"]
         self.assertEqual(default.get_actual_value(), strict.get_actual_value())
         self.assertLess(default.get_actual_numeric_rank(),
@@ -262,7 +270,7 @@ class TestCalculatePillarValues(unittest.TestCase):
     def test_does_not_mutate_its_input(self):
         supplied = basics()
         snapshot = dict(supplied)
-        calculate_pillar_values(supplied, DEFAULT_RANGES)
+        calculate_pillar_values(supplied, TEST_RANGES)
         self.assertEqual(supplied, snapshot)
 
 
@@ -274,51 +282,51 @@ class TestDegenerateDenominators(unittest.TestCase):
     """
 
     def test_no_revenue_is_worst_margin(self):
-        pillar = calculate_pillar_values(basics(revenue=0.0), DEFAULT_RANGES)["ebitda_margin"]
+        pillar = calculate_pillar_values(basics(revenue=0.0), TEST_RANGES)["ebitda_margin"]
         self.assertIsNone(pillar.get_actual_value())
-        self.assertEqual(pillar.get_actual_numeric_rank(), 8)
+        self.assertEqual(pillar.get_actual_numeric_rank(), 7)
 
     def test_no_debt_with_positive_fcf_is_best(self):
-        pillar = calculate_pillar_values(basics(debt=0.0), DEFAULT_RANGES)["fcf_debt"]
+        pillar = calculate_pillar_values(basics(debt=0.0), TEST_RANGES)["fcf_debt"]
         self.assertEqual(pillar.get_actual_numeric_rank(), 0)
 
     def test_no_debt_with_negative_fcf_is_worst(self):
         pillar = calculate_pillar_values(
-            basics(debt=0.0, free_cash_flow=-5.0 * B), DEFAULT_RANGES)["fcf_debt"]
-        self.assertEqual(pillar.get_actual_numeric_rank(), 8)
+            basics(debt=0.0, free_cash_flow=-5.0 * B), TEST_RANGES)["fcf_debt"]
+        self.assertEqual(pillar.get_actual_numeric_rank(), 7)
 
     def test_no_ebitda_with_debt_is_worst_leverage(self):
-        result = calculate_pillar_values(basics(ebitda=0.0), DEFAULT_RANGES)
-        self.assertEqual(result["td_ebitda"].get_actual_numeric_rank(), 8)
-        self.assertEqual(result["nd_ebitda"].get_actual_numeric_rank(), 8)
+        result = calculate_pillar_values(basics(ebitda=0.0), TEST_RANGES)
+        self.assertEqual(result["td_ebitda"].get_actual_numeric_rank(), 7)
+        self.assertEqual(result["nd_ebitda"].get_actual_numeric_rank(), 7)
 
     def test_no_ebitda_and_no_debt_is_best_leverage(self):
         result = calculate_pillar_values(
-            basics(ebitda=0.0, total_debt=0.0, net_debt=0.0), DEFAULT_RANGES)
+            basics(ebitda=0.0, total_debt=0.0, net_debt=0.0), TEST_RANGES)
         self.assertEqual(result["td_ebitda"].get_actual_numeric_rank(), 0)
         self.assertEqual(result["nd_ebitda"].get_actual_numeric_rank(), 0)
 
     def test_net_cash_counts_as_no_net_debt(self):
         """net_debt is negative when cash exceeds debt."""
         pillar = calculate_pillar_values(
-            basics(ebitda=0.0, net_debt=-20.0 * B), DEFAULT_RANGES)["nd_ebitda"]
+            basics(ebitda=0.0, net_debt=-20.0 * B), TEST_RANGES)["nd_ebitda"]
         self.assertEqual(pillar.get_actual_numeric_rank(), 0)
 
     def test_no_interest_with_earnings_is_best_coverage(self):
         """Infinite coverage. The draft had this inverted."""
         pillar = calculate_pillar_values(
-            basics(interest=0.0), DEFAULT_RANGES)["ebitda_interest"]
+            basics(interest=0.0), TEST_RANGES)["ebitda_interest"]
         self.assertEqual(pillar.get_actual_numeric_rank(), 0)
 
     def test_no_interest_and_no_earnings_is_worst_coverage(self):
         pillar = calculate_pillar_values(
-            basics(interest=0.0, ebitda=0.0), DEFAULT_RANGES)["ebitda_interest"]
-        self.assertEqual(pillar.get_actual_numeric_rank(), 8)
+            basics(interest=0.0, ebitda=0.0), TEST_RANGES)["ebitda_interest"]
+        self.assertEqual(pillar.get_actual_numeric_rank(), 7)
 
     def test_negative_ebitda_is_ranked_not_rejected(self):
-        result = calculate_pillar_values(basics(ebitda=-15.0 * B), DEFAULT_RANGES)
+        result = calculate_pillar_values(basics(ebitda=-15.0 * B), TEST_RANGES)
         self.assertAlmostEqual(result["ebitda_margin"].get_actual_value(), -0.125)
-        self.assertEqual(result["ebitda_margin"].get_actual_numeric_rank(), 8)
+        self.assertEqual(result["ebitda_margin"].get_actual_numeric_rank(), 7)
         self.assertEqual(result["td_ebitda"].get_actual_numeric_rank(), 0,
                          "negative multiple passes the <= test at the first bucket")
 
@@ -331,20 +339,20 @@ class TestInputValidation(unittest.TestCase):
                 incomplete = basics()
                 del incomplete[field]
                 with self.assertRaises(InvalidFinancials):
-                    calculate_pillar_values(incomplete, DEFAULT_RANGES)
+                    calculate_pillar_values(incomplete, TEST_RANGES)
 
     def test_none_value_is_rejected(self):
         """An unavailable figure must not be scored as if it were data."""
         with self.assertRaises(InvalidFinancials):
-            calculate_pillar_values(basics(ebitda=None), DEFAULT_RANGES)
+            calculate_pillar_values(basics(ebitda=None), TEST_RANGES)
 
     def test_string_value_is_rejected(self):
         with self.assertRaises(InvalidFinancials):
-            calculate_pillar_values(basics(revenue="120"), DEFAULT_RANGES)
+            calculate_pillar_values(basics(revenue="120"), TEST_RANGES)
 
     def test_empty_input_is_rejected(self):
         with self.assertRaises(InvalidFinancials):
-            calculate_pillar_values({}, DEFAULT_RANGES)
+            calculate_pillar_values({}, TEST_RANGES)
 
 
 # ─────────────────────────────────────
@@ -504,7 +512,7 @@ class TestBuildCreditRating(unittest.TestCase):
 
     def test_does_not_mutate_its_inputs(self):
         supplied, ranges, weights, velocity = (
-            basics(), dict(DEFAULT_RANGES), dict(DEFAULT_WEIGHTS),
+            basics(), dict(TEST_RANGES), dict(DEFAULT_WEIGHTS),
             dict(DEFAULT_VELOCITY))
         snapshots = (dict(supplied), dict(ranges), dict(weights), dict(velocity))
         build_credit_rating(supplied, ranges, weights, velocity)
@@ -528,7 +536,7 @@ class TestKnownIssuer(unittest.TestCase):
     }
 
     def test_pillar_values(self):
-        result = calculate_pillar_values(self.APPLE, DEFAULT_RANGES)
+        result = calculate_pillar_values(self.APPLE, TEST_RANGES)
         self.assertAlmostEqual(result["revenue_scale"].get_actual_value(), 394.3)
         self.assertAlmostEqual(result["ebitda_margin"].get_actual_value(), 0.331, places=3)
         self.assertAlmostEqual(result["fcf_debt"].get_actual_value(), 0.896, places=3)
@@ -567,3 +575,7 @@ class TestEngineHasNoWebDependencies(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+"""
+python tests/unittests/test_credit_rating.py
+"""

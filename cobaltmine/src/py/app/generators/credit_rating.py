@@ -329,15 +329,11 @@ def calculate_pillar_values(basic, basic_ranges=None) -> dict:
 
     pillars = {}
 
-    # revenue_scale — a level, not a ratio. Converted to billions so it is
-    # comparable with the breakpoints.
     pillars["revenue_scale"] = Pillar(
         "revenue_scale",
         revenue / REVENUE_SCALE_DIVISOR,
         ranges["revenue_scale"])
 
-    # ebitda_margin — the draft passed raw `ebitda` here instead of the
-    # margin, so every issuer ranked as if its margin were its EBITDA.
     bps = ranges["ebitda_margin"]
     if revenue <= 0:
         pillars["ebitda_margin"] = Pillar(
@@ -367,9 +363,7 @@ def calculate_pillar_values(basic, basic_ranges=None) -> dict:
             pillars[pillar_id] = Pillar(pillar_id, debt_figure / ebitda, bps)
 
     # ebitda_interest — no interest expense with positive earnings is
-    # infinite coverage, the best case. The draft had this inverted, and
-    # also built all three branches with the pillar id "nd_ebitda", which
-    # gave this pillar the wrong direction, name and number format.
+    # infinite coverage
     bps = ranges["ebitda_interest"]
     if interest == 0:
         rank = _best_rank() if ebitda > 0 else _worst_rank(bps)
