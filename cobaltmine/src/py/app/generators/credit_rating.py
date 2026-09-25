@@ -299,12 +299,20 @@ class Pillar:
 # Pillar construction
 # ─────────────────────────────────────
 
+# Ranks live on the RATING_SCALE axis, not in breakpoint-index space.
+# Deriving these from BREAKPOINT_TO_RATING keeps them correct if the scale
+# is ever rewidened — returning 0 and len(breakpoints) put a zero-revenue
+# issuer at rank 7, which reads as A- rather than the worst grade.
+BEST_RANK = BREAKPOINT_TO_RATING[min(BREAKPOINT_TO_RATING)][1]
+WORST_RANK = BREAKPOINT_TO_RATING[max(BREAKPOINT_TO_RATING)][1]
+
+
 def _best_rank():
-    return 0
+    return BEST_RANK
 
 
-def _worst_rank(breakpoints):
-    return len(breakpoints)
+def _worst_rank(breakpoints=None):
+    return WORST_RANK
 
 
 def validate_basic(basic):
