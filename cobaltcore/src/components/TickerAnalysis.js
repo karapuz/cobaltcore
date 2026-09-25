@@ -33,10 +33,19 @@ function getRatingBadge(rating) {
   );
 }
 
-function formatNotch(notch) {
-  if (notch === 0) return '0';
-  if (notch > 0) return `+${notch}`;
-  return `${notch}`;
+// A negative notch IMPROVES the rating and a positive one worsens it, so
+// the signed integer reads backwards to most people — "+1" looks like an
+// upgrade. Show the direction instead.
+function notchLabel(notch) {
+  if (notch < 0) return 'Notch Up';
+  if (notch > 0) return 'Notch Down';
+  return 'No Change';
+}
+
+function notchColor(notch) {
+  if (notch < 0) return 'text-green-600';
+  if (notch > 0) return 'text-red-600';
+  return 'text-gray-600';
 }
 
 export default function TickerAnalysis({ user, onBack, analysisData }) {
@@ -194,7 +203,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       ),
       '',
       `DSCR,${data.dscr.formatted_value}`,
-      `DSCR Notch,${formatNotch(data.dscr.notch)} (${data.dscr.notch_reason})`,
+      `DSCR Notch,${notchLabel(data.dscr.notch)} (${data.dscr.notch_reason})`,
       '',
       `Base Rating,${data.base_rating}`,
       `Compass Rating,${data.compass_rating}`
@@ -389,8 +398,8 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Notch Adjustment</p>
-                    <p className={`text-xl font-bold ${data.dscr.notch < 0 ? 'text-green-600' : data.dscr.notch > 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                      {formatNotch(data.dscr.notch)}
+                    <p className={`text-xl font-bold ${notchColor(data.dscr.notch)}`}>
+                      {notchLabel(data.dscr.notch)}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">{data.dscr.notch_reason}</p>
                   </div>
@@ -422,8 +431,8 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">DSCR Notch:</span>
-                    <span className={`font-mono text-sm font-bold ${data.dscr.notch < 0 ? 'text-green-600' : data.dscr.notch > 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {formatNotch(data.dscr.notch)}
+                    <span className={`text-sm font-bold ${notchColor(data.dscr.notch)}`}>
+                      {notchLabel(data.dscr.notch)}
                     </span>
                   </div>
                 </div>
