@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-// Numeric rank to letter rating mapping
-const RANK_TO_RATING = {
-  0: "AAA",
-  1: "AA+",
-  2: "AA",
-  3: "AA-",
-  4: "A+",
-  5: "A",
-  6: "A-",
-  7: "BBB+",
-  8: "BBB",
-};
+// The grade each bucket earns, best to worst. Mirrors BREAKPOINT_TO_RATING
+// in model_data/model_store.py: N breakpoints give N+1 buckets, so this has
+// one more entry than a pillar has breakpoints — the last one is the bucket
+// below every breakpoint.
+//
+// This is NOT the full rating ladder. The breakpoints land on whole grades;
+// the +/- variants are only reachable by the weighted score and the DSCR
+// notch, never by a single pillar.
+const BREAKPOINT_RATINGS = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC', 'CC'];
 
 function getRatingColor(rating) {
   if (!rating) return 'bg-gray-100 text-gray-800';
+  // Longest prefix first: 'BBB'.startsWith('BB') is true, so the order of
+  // these checks is load-bearing.
   if (rating.startsWith('AAA')) return 'bg-emerald-100 text-emerald-800';
   if (rating.startsWith('AA')) return 'bg-green-100 text-green-800';
   if (rating.startsWith('A')) return 'bg-lime-100 text-lime-800';
   if (rating.startsWith('BBB')) return 'bg-yellow-100 text-yellow-800';
-  return 'bg-orange-100 text-orange-800';
+  if (rating.startsWith('BB')) return 'bg-amber-100 text-amber-800';
+  if (rating.startsWith('B')) return 'bg-orange-100 text-orange-800';
+  if (rating.startsWith('CCC')) return 'bg-red-100 text-red-800';
+  return 'bg-red-200 text-red-900';
 }
 
 export default function RangeEditorModal({ pillar, currentRanges, onSave, onClose }) {
@@ -37,7 +39,9 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
     onSave(ranges);
   };
 
-  const getRating = (idx) => RANK_TO_RATING[idx] || 'BBB-';
+  // idx === ranges.length is the "below every breakpoint" bucket.
+  const getRating = (idx) => BREAKPOINT_RATINGS[idx] ?? '?';
+  const worstRating = getRating(ranges.length);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -99,8 +103,8 @@ export default function RangeEditorModal({ pillar, currentRanges, onSave, onClos
               ))}
               <tr className="border-t border-gray-100">
                 <td className="py-2">
-                  <span className="inline-block px-2 py-1 rounded text-xs font-bold bg-orange-100 text-orange-800">
-                    BBB-
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(worstRating)}`}>
+                    {worstRating}
                   </span>
                 </td>
                 <td className="py-2 text-sm text-gray-600">
