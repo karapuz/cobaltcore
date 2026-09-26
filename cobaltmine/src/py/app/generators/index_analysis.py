@@ -46,7 +46,7 @@ def fetch_basic_financials(symbol, year=DATA_YEAR):
     wrong rating, which is worse than an error.
     """
     basic = compass_access.getdata(
-        symbol=symbol, year=year, attributes=list(BASIC_FIELDS))
+        symbol=symbol, year=year)
 
     if not basic:
         raise HTTPException(
