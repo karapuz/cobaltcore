@@ -21,7 +21,8 @@ attributes = [
     "CASH_AND_EQ",
     "INTEREST",
     "SHORT_TERM_DEBT",
-    "OPERATING_CASH_FLOW"
+    "OPERATING_CASH_FLOW",
+    "INCOME_TAX_EXPENSE",
 ]
 
 def getdata(symbol, year, ttm:bool=True) -> dict:
@@ -92,8 +93,10 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
         interest: float         = ttm_vals["INTEREST"]
         short_term_debt: float  = ttm_vals["SHORT_TERM_DEBT"]
         op_cash_flow: float     = ttm_vals["OPERATING_CASH_FLOW"]
+        income_tax_expense      = ttm_vals["INCOME_TAX_EXPENSE"]
         net_debt = total_debt - cash_eq
         return {
+            "income_tax_expense": income_tax_expense,
             "revenue": revenue, 
             "ebitda": ebitda,
             "free_cash_flow": free_cash_flow,

@@ -406,10 +406,13 @@ def calculate_pillar_values(basic, basic_ranges=None) -> dict:
 def build_forecast(actual_basic, years=1, velocity=None):
     """Project the basic financials `years` ahead, compounding the velocity."""
     velocity = velocity or DEFAULT_VELOCITY
-    return {
-        key: value * (velocity[key] ** years)
-        for key, value in actual_basic.items()
-    }
+    foreacst = {}
+    for key, value in actual_basic.items():
+        if key in velocity:            
+            foreacst[key] = value * (velocity[key] ** years)
+        else:
+            print(f"build_forecast: skipping {key}")
+    return foreacst
 
 
 def blend_basics(actual_basic, velocity=None, blend=None, horizons=None):
@@ -440,13 +443,16 @@ def blend_basics(actual_basic, velocity=None, blend=None, horizons=None):
 # ─────────────────────────────────────
 # DSCR
 # ─────────────────────────────────────
-
+"""
+Debt Service Coverage Ratio (DSCR)=
+    (EBITDA -  INCOME_TAX_EXPENSE) / (INTEREST + SHORT_TERM_DEBT)
+"""
 def calculate_dscr(basic):
     """Operating Cash Flow / (Short Term Debt + Debt)."""
-    denominator = basic["short_term_debt"] + basic["debt"]
+    denominator = basic["short_term_debt"] + basic["interest"]
     if denominator == 0:
         return 0
-    return basic["operating_cash_flow"] / denominator
+    return (basic["ebitda"] - basic["income_tax_expense"]) / denominator
 
 
 def calculate_dscr_notch(dscr_value):
