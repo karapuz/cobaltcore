@@ -13,17 +13,21 @@ past_periods = 10
 env_name: str = str(os.getenv("ENV_DATA_NAME"))
 pallette = "STEEL_BLUE"
 
-QS = ["Q1", "Q2", "Q3", "Q4"]
-attributes = [
-    "REVENUE",
-    "FREE_CASH_FLOW",
-    "TOTAL_DEBT",
-    "CASH_AND_EQ",
-    "INTEREST",
-    "SHORT_TERM_DEBT",
-    "OPERATING_CASH_FLOW",
-    "INCOME_TAX_EXPENSE",
-]
+CUMULATIVE = "CUMULATIVE"
+PIT = "PIT"
+
+QS = ["Q4", "Q3", "Q2", "Q1"]
+attributes = {
+    "REVENUE": CUMULATIVE,
+    "FREE_CASH_FLOW": CUMULATIVE,
+    "TOTAL_DEBT": PIT,
+    "CASH_AND_EQ": PIT,
+    "INTEREST": CUMULATIVE,
+    "SHORT_TERM_DEBT": PIT,
+    "OPERATING_CASH_FLOW": CUMULATIVE,
+    "INCOME_TAX_EXPENSE": CUMULATIVE,
+    "EBITDA": CUMULATIVE,
+}
 
 def getdata(symbol, year, ttm:bool=True) -> dict:
     tweaks_ = {
@@ -51,7 +55,7 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
                 ttm_vals = defaultdict(float)
                 date_tag = access.get_date_tag(year=y)
                 found_y = date_tag
-                for attr in attributes:
+                for attr, acc_type in attributes.items():
                     val = dk.get_val(attr, date_tag=date_tag, throw=False)
                     if isinstance(val, rating_const.WRAPPED_VALUE):
                         print(f"getdata: skipping {attr} for {date_tag}")
@@ -59,17 +63,18 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
                         break
                     ttm_vals[attr] = val
             print(f"getdata: found {found_y}")
-            ebitda : float = rating_model_engine.compute_ebitda(dk=dk, date_tag=found_y)
-            ttm_vals["EBITDA"] = ebitda
+            # ebitda : float = rating_model_engine.compute_ebitda(dk=dk, date_tag=found_y)
+            # ttm_vals["EBITDA"] = ebitda
         else:
             found_q = {}
+            pit_q = set()
             year_int = int(year)
-            for q in QS:
-                for y in [year_int+2, year_int+1, year_int]:
+            for y in [year_int+2, year_int+1, year_int]:
+                for q in QS:
                     q_vals = defaultdict(float)
                     if q not in found_q or not found_q[q]:
                         date_tag = access.get_date_tag(year=y, period=q)                        
-                        for attr in attributes:
+                        for attr, acc_type in attributes.items():
                             val = dk.get_val(attr, date_tag=date_tag, throw=False)
                             found_q[q] = True
                             if isinstance(val, rating_const.WRAPPED_VALUE):
@@ -79,11 +84,15 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
                             q_vals[attr] += val
                         if found_q[q]:
                             print(f"getdata: found {y}-{q}")
-                            for attr in attributes:
-                                ttm_vals[attr] += q_vals[attr]
+                            for attr, acc_type in attributes.items():
+                                if acc_type == CUMULATIVE:
+                                    ttm_vals[attr] += q_vals[attr]
+                                elif acc_type == PIT and attr not in pit_q:
+                                    ttm_vals[attr] = q_vals[attr]
+                                    pit_q.add(attr)
                                 print(f"{y}{q} {attr} - {q_vals[attr]} --> {ttm_vals[attr]}")
-                            ebitda : float = rating_model_engine.compute_ebitda(dk=dk, date_tag=date_tag)
-                            ttm_vals["EBITDA"] += ebitda
+                            # ebitda : float = rating_model_engine.compute_ebitda(dk=dk, date_tag=date_tag)
+                            # ttm_vals["EBITDA"] += ebitda
 
         ebitda : float          = ttm_vals["EBITDA"]
         revenue: float          = ttm_vals["REVENUE"]

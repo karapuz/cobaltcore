@@ -443,15 +443,15 @@ def blend_basics(actual_basic, velocity=None, blend=None, horizons=None):
 # ─────────────────────────────────────
 # DSCR
 # ─────────────────────────────────────
-"""
-Debt Service Coverage Ratio (DSCR)=
-    (EBITDA -  INCOME_TAX_EXPENSE) / (INTEREST + SHORT_TERM_DEBT)
-"""
 def calculate_dscr(basic):
-    """Operating Cash Flow / (Short Term Debt + Debt)."""
+    """
+    Debt Service Coverage Ratio (DSCR)=
+        (EBITDA -  INCOME_TAX_EXPENSE) / (INTEREST + SHORT_TERM_DEBT)
+    """
     denominator = basic["short_term_debt"] + basic["interest"]
     if denominator == 0:
-        return 0
+        # if denominotaor is 0, it is VERY good. Notch up.
+        return 100
     return (basic["ebitda"] - basic["income_tax_expense"]) / denominator
 
 
