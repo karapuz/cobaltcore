@@ -41,6 +41,12 @@ const FINANCIAL_FACTORS = [
   { key: 'netDebt', label: 'Net Debt', prefix: '$ ', suffix: ' M' },
   { key: 'freeCashFlow', label: 'Free Cash Flow', prefix: '$ ', suffix: ' M' },
   { key: 'operatingCashFlow', label: 'Operating Cash Flow', prefix: '$ ', suffix: ' M' },
+  // Interest expense feeds the EBITDA / Interest pillar, which carries real
+  // weight in the rating. It used to be assumed at 5% of total debt; it is
+  // collected now so the figure is the user's, not a guess.
+  { key: 'interest', label: 'Interest Expense', prefix: '$ ', suffix: ' M' },
+  // DSCR = (EBITDA - income tax expense) / (interest + short term debt).
+  { key: 'incomeTaxExpense', label: 'Income Tax Expense', prefix: '$ ', suffix: ' M' },
 ];
 
 const TIME_PERIODS = [
@@ -49,11 +55,79 @@ const TIME_PERIODS = [
   { key: 'twoYearsForward', label: 'TWO YEARS\nFORWARD' },
 ];
 
+// ─────────────────────────────────────
+// CSV import
+// ─────────────────────────────────────
+
+// Row labels carrying the scenario's classification, written above the
+// factor table by the template and read back on import.
+const SECTOR_ROW_LABEL = 'Sector';
+const INDUSTRY_ROW_LABEL = 'Industry';
+
+// Minimal RFC-4180 reader: handles quoted fields, embedded commas, escaped
+// quotes and CRLF. Small enough not to warrant a dependency, and the files
+// this reads are ones we also write.
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i += 1; }
+        else inQuotes = false;
+      } else field += ch;
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      row.push(field); field = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i += 1;
+      row.push(field); field = '';
+      rows.push(row); row = [];
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+
+function csvCell(value) {
+  const text = String(value ?? '');
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+// Row labels are matched loosely so a file that has been through Excel still
+// lines up: case, spacing, currency symbols and units are all ignored.
+function normalizeLabel(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// "$ 1,234.50 M", "(500)" and "1 234" all parse. Returns null if it isn't a
+// number, so the caller can report the row rather than storing NaN.
+function parseAmount(raw) {
+  let text = String(raw ?? '').trim();
+  if (text === '') return null;
+  let negative = false;
+  if (/^\(.*\)$/.test(text)) { negative = true; text = text.slice(1, -1); }
+  text = text.replace(/[$,\s]/g, '').replace(/[mM]$/, '');
+  if (text.startsWith('-')) { negative = true; text = text.slice(1); }
+  if (!/^\d*\.?\d+$/.test(text)) return null;
+  const value = parseFloat(text);
+  if (Number.isNaN(value)) return null;
+  return negative ? -value : value;
+}
+
 export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
   const [sector, setSector] = useState('');
   const [industry, setIndustry] = useState('');
   const [isComputing, setIsComputing] = useState(false);
   const [error, setError] = useState(null);
+  const [importNotice, setImportNotice] = useState(null);
 
   // Initialize form data for all factors across all time periods
   const [formData, setFormData] = useState(() => {
@@ -67,6 +141,15 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
     initial['revenueScale_trailing12'] = 95;
     initial['revenueScale_oneYearForward'] = 120;
     initial['revenueScale_twoYearsForward'] = 145;
+    // Interest at the blanket 85 would mean EBITDA / Interest of 1.0, which
+    // rates CC and makes the untouched form look like a distressed issuer.
+    // 5% of the default total debt matches the assumption this row replaces.
+    TIME_PERIODS.forEach(period => {
+      initial[`interest_${period.key}`] = 4.25;
+      // The blanket 85 here would make DSCR zero and notch every untouched
+      // form down a grade; 15 is a plausible tax charge against EBITDA 85.
+      initial[`incomeTaxExpense_${period.key}`] = 15;
+    });
     return initial;
   });
 
@@ -85,7 +168,7 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
 
   const handleCompute = async () => {
     if (!sector || !industry) {
-      setError('Please select both Sector and Industry before computing.');
+      setError('Sector and Industry are required. Load a file that includes them, or pick them above.');
       return;
     }
 
@@ -117,6 +200,13 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
   const handleDownloadTemplate = () => {
     // Generate CSV template
     const headers = ['Financial Assessment Factor', ...TIME_PERIODS.map(p => p.label.replace('\n', ' '))];
+    // Sector and industry travel with the file so a loaded scenario is
+    // complete on its own and does not depend on what is selected on screen.
+    const meta = [
+      [SECTOR_ROW_LABEL, sector],
+      [INDUSTRY_ROW_LABEL, industry],
+      [],
+    ];
     const rows = FINANCIAL_FACTORS.map(factor => [
       factor.label,
       formData[`${factor.key}_trailing12`] || '',
@@ -124,7 +214,9 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
       formData[`${factor.key}_twoYearsForward`] || ''
     ]);
 
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const csvContent = [...meta, headers, ...rows]
+      .map(row => row.map(csvCell).join(','))
+      .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -137,15 +229,132 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
   const handleLoadFromExcel = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.csv,.xlsx,.xls';
+    input.accept = '.csv,text/csv';
     input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        // For now, just show a message - full implementation would parse the file
-        alert(`File "${file.name}" selected. CSV parsing would be implemented here.`);
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (/\.xlsx?$/i.test(file.name)) {
+        setError('Excel workbooks are not supported. Save the sheet as CSV and load that.');
+        return;
       }
+
+      const reader = new FileReader();
+      reader.onerror = () => setError(`Could not read "${file.name}".`);
+      reader.onload = () => {
+        try {
+          applyImportedCsv(String(reader.result), file.name);
+        } catch (err) {
+          setError(err.message || 'Could not parse the file.');
+        }
+      };
+      reader.readAsText(file);
     };
     input.click();
+  };
+
+  // Reads the same shape handleDownloadTemplate writes: one row per factor,
+  // three period columns. Rows are matched on the label rather than position,
+  // so reordered or partial files still load.
+  const applyImportedCsv = (text, fileName) => {
+    const rows = parseCsv(text);
+    if (!rows.length) throw new Error(`"${fileName}" is empty.`);
+
+    const byLabel = {};
+    FINANCIAL_FACTORS.forEach(factor => {
+      byLabel[normalizeLabel(factor.label)] = factor.key;
+      byLabel[normalizeLabel(factor.key)] = factor.key;   // accept raw keys too
+    });
+
+    const updates = {};
+    const loaded = [];
+    const unknown = [];
+    const badValues = [];
+    const notes = [];
+    let importedSector = null;
+    let importedIndustry = null;
+
+    rows.forEach((row, index) => {
+      const label = normalizeLabel(row[0]);
+
+      if (label === normalizeLabel(SECTOR_ROW_LABEL)) {
+        importedSector = String(row[1] || '').trim();
+        return;
+      }
+      if (label === normalizeLabel(INDUSTRY_ROW_LABEL)) {
+        importedIndustry = String(row[1] || '').trim();
+        return;
+      }
+
+      const key = byLabel[label];
+      if (!key) {
+        // The header row is expected; anything else unmatched is reported.
+        if (index > 0 && label !== normalizeLabel('Financial Assessment Factor')) {
+          if (String(row[0] || '').trim()) unknown.push(String(row[0]).trim());
+        }
+        return;
+      }
+
+      TIME_PERIODS.forEach((period, column) => {
+        const raw = row[column + 1];
+        if (raw === undefined || String(raw).trim() === '') return;
+        const value = parseAmount(raw);
+        if (value === null) {
+          badValues.push(`${row[0]} / ${period.label.replace('\n', ' ')}: "${String(raw).trim()}"`);
+          return;
+        }
+        updates[`${key}_${period.key}`] = value;
+      });
+      loaded.push(key);
+    });
+
+    if (!loaded.length) {
+      throw new Error(
+        `No recognised rows in "${fileName}". Download the template to see the expected format.`
+      );
+    }
+
+    // Sector and industry come from the file; the dropdowns follow it rather
+    // than the other way round. Unknown values are still applied — the engine
+    // takes them as free text — but they are called out.
+    if (importedSector) {
+      const match = Object.keys(INDUSTRIES_BY_SECTOR)
+        .find(name => normalizeLabel(name) === normalizeLabel(importedSector));
+      setSector(match || importedSector);
+      if (!match) notes.push(`Sector "${importedSector}" is not one of the known sectors.`);
+
+      if (importedIndustry) {
+        const list = INDUSTRIES_BY_SECTOR[match] || [];
+        const industryMatch = list
+          .find(name => normalizeLabel(name) === normalizeLabel(importedIndustry));
+        setIndustry(industryMatch || importedIndustry);
+        if (match && !industryMatch) {
+          notes.push(`Industry "${importedIndustry}" is not listed under ${match}.`);
+        }
+      }
+    } else if (importedIndustry) {
+      setIndustry(importedIndustry);
+    }
+
+    setFormData(prev => ({ ...prev, ...updates }));
+    setError(null);
+
+    // Say what landed and what did not, rather than silently partially
+    // loading — a quietly skipped row becomes a wrong rating.
+    const missing = FINANCIAL_FACTORS
+      .filter(factor => !loaded.includes(factor.key))
+      .map(factor => factor.label);
+    const parts = [`Loaded ${loaded.length} of ${FINANCIAL_FACTORS.length} rows from "${fileName}".`];
+    if (importedSector || importedIndustry) {
+      parts.push(`Sector/industry from file: ${importedSector || '—'} / ${importedIndustry || '—'}.`);
+    } else {
+      parts.push('No Sector or Industry rows in the file; the current selection is unchanged.');
+    }
+    notes.forEach(note => parts.push(note));
+    if (missing.length) parts.push(`Not in the file (kept current values): ${missing.join(', ')}.`);
+    if (unknown.length) parts.push(`Unrecognised rows ignored: ${unknown.join(', ')}.`);
+    if (badValues.length) parts.push(`Skipped non-numeric cells: ${badValues.join('; ')}.`);
+    setImportNotice(parts.join(' '));
   };
 
   const availableIndustries = sector ? INDUSTRIES_BY_SECTOR[sector] || [] : [];
@@ -283,6 +492,19 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
+          </div>
+        )}
+
+        {/* CSV import summary */}
+        {importNotice && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex items-start justify-between gap-4">
+            <p className="text-sm">{importNotice}</p>
+            <button
+              onClick={() => setImportNotice(null)}
+              className="text-blue-500 hover:text-blue-700 text-sm font-semibold"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 

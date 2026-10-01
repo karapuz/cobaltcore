@@ -415,7 +415,8 @@ def build_forecast(actual_basic, years=1, velocity=None):
     return foreacst
 
 
-def blend_basics(actual_basic, velocity=None, blend=None, horizons=None):
+def blend_basics(actual_basic, velocity=None, blend=None, horizons=None,
+                 forecast_basics=None):
     """
     One set of financials weighted across actual and every forecast horizon.
 
@@ -433,7 +434,8 @@ def blend_basics(actual_basic, velocity=None, blend=None, horizons=None):
 
     for horizon in horizons:
         weight = blend[horizon["key"]]
-        forecast = build_forecast(actual_basic, horizon["years"], velocity)
+        forecast = (forecast_basics or {}).get(horizon["key"]) \
+            or build_forecast(actual_basic, horizon["years"], velocity)
         for field, value in forecast.items():
             blended[field] += value * weight
 
@@ -468,7 +470,8 @@ def calculate_dscr_notch(dscr_value):
 # Top level
 # ─────────────────────────────────────
 
-def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None):
+def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None,
+                        forecast_basics=None):
     """
     Full rating for one set of financials. Pure: same inputs, same output.
 
@@ -484,16 +487,17 @@ def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None):
     actual_pillars = calculate_pillar_values(actual_basic, ranges)
 
     forecast_pillars = {}
-    forecast_basics = {}
+    forecast_basics = dict(forecast_basics or {})
     for horizon in FORECAST_HORIZONS:
-        forecast_basic = build_forecast(
+        forecast_basic = forecast_basics.get(horizon["key"]) or build_forecast(
             actual_basic, horizon["years"], velocity)
         forecast_basics[horizon["key"]] = forecast_basic
         forecast_pillars[horizon["key"]] = calculate_pillar_values(
             forecast_basic, ranges)
 
     # The score path: blend the figures, then rank once.
-    blended_basic = blend_basics(actual_basic, velocity)
+    blended_basic = blend_basics(actual_basic, velocity,
+                                 forecast_basics=forecast_basics)
     blended_pillars = calculate_pillar_values(blended_basic, ranges)
 
     dscr_value = calculate_dscr(actual_basic)

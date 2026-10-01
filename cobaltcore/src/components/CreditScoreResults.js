@@ -12,6 +12,21 @@ function getRatingColor(rating) {
   return 'bg-red-100 text-red-800';
 }
 
+// A negative notch IMPROVES the rating and a positive one worsens it, so the
+// signed integer reads backwards. Show the direction instead. Same wording as
+// the DSCR panel in TickerAnalysis.
+function notchLabel(notch) {
+  if (notch < 0) return 'Notch Up';
+  if (notch > 0) return 'Notch Down';
+  return 'No Change';
+}
+
+function notchColor(notch) {
+  if (notch < 0) return 'text-green-600';
+  if (notch > 0) return 'text-red-600';
+  return 'text-gray-600';
+}
+
 export default function CreditScoreResults({ user, onBack, onNavigate, resultData }) {
   // Extract results from nested structure or use defaults
   const apiResults = resultData?.results || resultData || {};
@@ -19,7 +34,11 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
   const data = {
     sector: apiResults.sector || resultData?.sector || 'Industrials',
     industry: apiResults.industry || resultData?.industry || 'Cotton',
-    compassRating: apiResults.compassRating || 'BB+',
+    compassRating: apiResults.compassRating || apiResults.compass_rating || 'BB+',
+    dscr: apiResults.dscr,
+    baseScore: apiResults.base_score,
+    baseRating: apiResults.base_rating,
+    scoreBlend: apiResults.score_blend,
     factors: apiResults.factors || [
       { name: 'Revenue Scale ($ millions)', weight: '15.00%', metric: '$115.00M', score: 'AA' },
       { name: 'EBITDA Margin', weight: '15.00%', metric: '30%', score: 'AA' },
@@ -41,6 +60,13 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
       'Financial Pillar Rating,Industry Weights,Forecast Weighted Metrics,Factor Letter Score',
       ...(data.factors || []).map(f => `${f.name},${f.weight},${f.metric},${f.score}`),
       '',
+      ...(data.baseScore !== undefined && data.baseScore !== null
+        ? [`Base Score,${data.baseScore.toFixed(2)}`, `Base Rating,${data.baseRating}`]
+        : []),
+      ...(data.dscr
+        ? [`DSCR,${data.dscr.formatted_value}`,
+           `DSCR Notch,${notchLabel(data.dscr.notch)} (${data.dscr.notch_reason})`]
+        : []),
       `Compass Rating,${data.compassRating}`
     ];
 
@@ -163,22 +189,73 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
           </table>
         </div>
 
+        {/* DSCR Notching — only when the engine reported it */}
+        {data.dscr && (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+            <div className="bg-gray-800 text-white px-4 py-3">
+              <h3 className="font-bold text-sm">DSCR NOTCHING</h3>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Debt Service Coverage Ratio</p>
+                <p className="text-xl font-bold text-gray-900">{data.dscr.formatted_value}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  DSCR = (EBITDA - Income Tax Expense) / (Interest Expense + Short Term Debt)
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Notch Adjustment</p>
+                <p className={`text-xl font-bold ${notchColor(data.dscr.notch)}`}>
+                  {notchLabel(data.dscr.notch)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">{data.dscr.notch_reason}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Compass Rating */}
-        <div className="mb-12">
-          <table className="border border-gray-300">
-            <tbody>
-              <tr>
-                <td className="bg-gray-900 text-white font-bold px-6 py-3 border border-gray-300 text-lg">
-                  Compass Rating
-                </td>
-                <td className="px-8 py-3 border border-gray-300 bg-white">
-                  <span className={`inline-block px-4 py-2 rounded-lg text-xl font-bold ${getRatingColor(data.compassRating)}`}>
-                    {data.compassRating}
+        <div className="flex justify-center mb-12">
+          <div className="bg-white rounded-lg border border-gray-200 px-10 py-6 text-center min-w-[320px]">
+            <p className="text-sm text-gray-500 mb-4">COMPASS RATING</p>
+
+            {data.baseScore !== undefined && data.baseScore !== null && (
+              <div className="space-y-3 mb-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Base Score:</span>
+                  <span className="font-mono text-sm">{data.baseScore.toFixed(2)}</span>
+                </div>
+                {data.scoreBlend && (
+                  <p className="text-xs text-gray-400 text-left">
+                    Blend: {Math.round(data.scoreBlend.actual * 100)}% pillar
+                    {` · ${Math.round((data.scoreBlend.forecast_1y || 0) * 100)}% 1Y`}
+                    {` · ${Math.round((data.scoreBlend.forecast_2y || 0) * 100)}% 2Y`}
+                  </p>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Base Rating:</span>
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${getRatingColor(data.baseRating)}`}>
+                    {data.baseRating}
                   </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+                {data.dscr && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">DSCR Notch:</span>
+                    <span className={`text-sm font-bold ${notchColor(data.dscr.notch)}`}>
+                      {notchLabel(data.dscr.notch)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-xs text-gray-500 mb-2">FINAL RATING</p>
+              <span className={`inline-block px-6 py-3 rounded-lg text-3xl font-bold ${getRatingColor(data.compassRating)}`}>
+                {data.compassRating}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}
