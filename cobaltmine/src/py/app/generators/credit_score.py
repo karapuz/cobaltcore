@@ -137,5 +137,13 @@ async def compute_credit_score(
         "sector": sector,
         "industry": industry,
         "compassRating": result["compass_rating"],
+        # Exactly what the engine was handed, in absolute currency units
+        # (the form collects $ millions). Returned so a result can be traced
+        # back to its inputs without re-deriving the unit conversion.
+        "basic_financials": {
+            "actual": scenarios["actual"],
+            **{h["key"]: scenarios[h["key"]] for h in FORECAST_HORIZONS},
+        },
+        "basic_units": "absolute currency (form values x 1,000,000)",
     })
     return result

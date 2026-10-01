@@ -15,6 +15,32 @@ function getRatingColor(rating) {
 // A negative notch IMPROVES the rating and a positive one worsens it, so the
 // signed integer reads backwards. Show the direction instead. Same wording as
 // the DSCR panel in TickerAnalysis.
+function csvCell(value) {
+  const text = String(value ?? '');
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+// The nine/ten basic figures, in the order the estimator collects them.
+const BASIC_ROWS = [
+  ['revenue', 'Revenue'],
+  ['ebitda', 'EBITDA'],
+  ['short_term_debt', 'Short Term Debt'],
+  ['debt', 'Debt'],
+  ['total_debt', 'Total Debt'],
+  ['net_debt', 'Net Debt'],
+  ['free_cash_flow', 'Free Cash Flow'],
+  ['operating_cash_flow', 'Operating Cash Flow'],
+  ['interest', 'Interest Expense'],
+  ['income_tax_expense', 'Income Tax Expense'],
+];
+
+// Values arrive in absolute currency; the form collects millions, so show
+// millions and keep the raw figure available in the CSV.
+function asMillions(value) {
+  if (value === undefined || value === null) return '—';
+  return `${(value / 1e6).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
 function notchLabel(notch) {
   if (notch < 0) return 'Notch Up';
   if (notch > 0) return 'Notch Down';
@@ -39,6 +65,13 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
     baseScore: apiResults.base_score,
     baseRating: apiResults.base_rating,
     scoreBlend: apiResults.score_blend,
+    pillars: apiResults.pillars,
+    horizons: apiResults.forecast_horizons || [
+      { key: 'forecast_1y', label: '1Y FORECAST' },
+      { key: 'forecast_2y', label: '2Y FORECAST' },
+    ],
+    basics: apiResults.basic_financials,
+    basicUnits: apiResults.basic_units,
     factors: apiResults.factors || [
       { name: 'Revenue Scale ($ millions)', weight: '15.00%', metric: '$115.00M', score: 'AA' },
       { name: 'EBITDA Margin', weight: '15.00%', metric: '30%', score: 'AA' },
@@ -57,9 +90,43 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
       `Sector,${data.sector}`,
       `Industry,${data.industry}`,
       '',
-      'Financial Pillar Rating,Industry Weights,Forecast Weighted Metrics,Factor Letter Score',
-      ...(data.factors || []).map(f => `${f.name},${f.weight},${f.metric},${f.score}`),
+      // Pillar table: actual, each forecast horizon, and the blended figure
+      // that actually feeds the score.
+      ...(data.pillars
+        ? [
+            ['Pillar', 'Value', 'Rank',
+              ...data.horizons.flatMap(h => [`${h.label} Value`, `${h.label} Rank`]),
+              'Blended Value', 'Score Rank', 'Weight'].join(','),
+            ...data.pillars.map(p => [
+              csvCell(p.name), csvCell(p.formatted_value), p.rank,
+              ...data.horizons.flatMap(h => [
+                csvCell(p[`${h.key}_formatted_value`]), p[`${h.key}_rank`]]),
+              csvCell(p.blended_formatted_value), p.blended_numeric_rank,
+              `${Math.round(p.weight * 100)}%`,
+            ].join(',')),
+          ]
+        : [
+            'Financial Pillar Rating,Industry Weights,Forecast Weighted Metrics,Factor Letter Score',
+            ...(data.factors || []).map(f => `${f.name},${f.weight},${f.metric},${f.score}`),
+          ]),
       '',
+      // Raw inputs, so a surprising rating can be traced to what went in.
+      ...(data.basics
+        ? [
+            `Basic values (${data.basicUnits || 'absolute currency units'})`,
+            ['Financial', 'Trailing 12M',
+              ...data.horizons.map(h => h.label)].join(','),
+            ...BASIC_ROWS
+              .filter(([field]) => data.basics.actual
+                && data.basics.actual[field] !== undefined)
+              .map(([field, label]) => [
+                csvCell(label),
+                data.basics.actual[field],
+                ...data.horizons.map(h => (data.basics[h.key] || {})[field] ?? ''),
+              ].join(',')),
+            '',
+          ]
+        : []),
       ...(data.baseScore !== undefined && data.baseScore !== null
         ? [`Base Score,${data.baseScore.toFixed(2)}`, `Base Rating,${data.baseRating}`]
         : []),
@@ -147,47 +214,128 @@ export default function CreditScoreResults({ user, onBack, onNavigate, resultDat
           </table>
         </div>
 
-        {/* Financial Pillar Ratings Table */}
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden mb-8">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-900 text-white">
-                <th className="text-left px-6 py-4 font-bold text-sm">
-                  Financial Pillar Rating
-                </th>
-                <th className="text-left px-6 py-4 font-bold text-sm">
-                  Industry Weights
-                </th>
-                <th className="text-left px-6 py-4 font-bold text-sm">
-                  FORECAST WEIGHTED<br />METRICS
-                </th>
-                <th className="text-left px-6 py-4 font-bold text-sm">
-                  FACTOR LETTER SCORE
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data.factors || []).map((factor, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-3 font-semibold text-gray-900 border-t border-gray-200">
-                    {factor.name}
-                  </td>
-                  <td className="px-6 py-3 text-center border-t border-gray-200">
-                    {factor.weight}
-                  </td>
-                  <td className="px-6 py-3 text-center font-bold border-t border-gray-200">
-                    {factor.metric}
-                  </td>
-                  <td className="px-6 py-3 border-t border-gray-200">
-                    <span className={`inline-block px-3 py-1 rounded text-sm font-semibold ${getRatingColor(factor.score)}`}>
-                      {factor.score}
-                    </span>
-                  </td>
+        {/* Financial Pillar Ratings — same columns as the index screen */}
+        <div className="bg-white border border-gray-300 rounded-lg overflow-x-auto mb-8">
+          {data.pillars ? (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-900 text-white">
+                  <th className="text-left px-4 py-4 font-bold text-sm">PILLAR</th>
+                  <th className="text-right px-4 py-4 font-bold text-sm">VALUE</th>
+                  <th className="text-center px-4 py-4 font-bold text-sm">RANK</th>
+                  {data.horizons.map(h => (
+                    <React.Fragment key={h.key}>
+                      <th className="text-right px-4 py-4 font-bold text-sm bg-blue-900">{h.label}</th>
+                      <th className="text-center px-4 py-4 font-bold text-sm bg-blue-900">
+                        {h.label.replace(' FORECAST', '')} RANK
+                      </th>
+                    </React.Fragment>
+                  ))}
+                  <th className="text-right px-4 py-4 font-bold text-sm">BLENDED</th>
+                  <th className="text-center px-4 py-4 font-bold text-sm">SCORE RANK</th>
+                  <th className="text-center px-4 py-4 font-bold text-sm">WEIGHT</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.pillars.map((pillar, idx) => (
+                  <tr key={pillar.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-4 py-3 font-semibold text-gray-900">{pillar.name}</td>
+                    <td className="px-4 py-3 text-right font-mono text-sm">{pillar.formatted_value}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(pillar.rank)}`}>
+                        {pillar.rank}
+                      </span>
+                    </td>
+                    {data.horizons.map(h => (
+                      <React.Fragment key={h.key}>
+                        <td className="px-4 py-3 text-right font-mono text-sm bg-blue-50">
+                          {pillar[`${h.key}_formatted_value`]}
+                        </td>
+                        <td className="px-4 py-3 text-center bg-blue-50">
+                          <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(pillar[`${h.key}_rank`])}`}>
+                            {pillar[`${h.key}_rank`]}
+                          </span>
+                        </td>
+                      </React.Fragment>
+                    ))}
+                    <td className="px-4 py-3 text-right font-mono text-sm">{pillar.blended_formatted_value}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(pillar.blended_rank)}`}>
+                        {pillar.blended_rank}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">{Math.round(pillar.weight * 100)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            // Older payloads only carried the four-column factor summary.
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-900 text-white">
+                  <th className="text-left px-6 py-4 font-bold text-sm">Financial Pillar Rating</th>
+                  <th className="text-left px-6 py-4 font-bold text-sm">Industry Weights</th>
+                  <th className="text-left px-6 py-4 font-bold text-sm">FORECAST WEIGHTED<br />METRICS</th>
+                  <th className="text-left px-6 py-4 font-bold text-sm">FACTOR LETTER SCORE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.factors || []).map((factor, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-6 py-3 font-semibold text-gray-900 border-t border-gray-200">{factor.name}</td>
+                    <td className="px-6 py-3 text-center border-t border-gray-200">{factor.weight}</td>
+                    <td className="px-6 py-3 text-center font-bold border-t border-gray-200">{factor.metric}</td>
+                    <td className="px-6 py-3 border-t border-gray-200">
+                      <span className={`inline-block px-3 py-1 rounded text-sm font-semibold ${getRatingColor(factor.score)}`}>
+                        {factor.score}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
+
+        {/* Basic financials the engine was handed */}
+        {data.basics && (
+          <div className="bg-white border border-gray-300 rounded-lg overflow-x-auto mb-8">
+            <div className="bg-gray-800 text-white px-4 py-3 flex items-center justify-between">
+              <h3 className="font-bold text-sm">BASIC VALUES ($ millions)</h3>
+              <span className="text-xs text-gray-300">as received by the rating engine</span>
+            </div>
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="text-left px-4 py-3 font-bold text-sm text-gray-700">FINANCIAL</th>
+                  <th className="text-right px-4 py-3 font-bold text-sm text-gray-700">TRAILING 12M</th>
+                  {data.horizons.map(h => (
+                    <th key={h.key} className="text-right px-4 py-3 font-bold text-sm text-gray-700">
+                      {h.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {BASIC_ROWS.filter(([field]) => data.basics.actual
+                  && data.basics.actual[field] !== undefined).map(([field, label], idx) => (
+                  <tr key={field} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-4 py-2 font-medium text-gray-900 border-t border-gray-200">{label}</td>
+                    <td className="px-4 py-2 text-right font-mono text-sm border-t border-gray-200">
+                      {asMillions(data.basics.actual[field])}
+                    </td>
+                    {data.horizons.map(h => (
+                      <td key={h.key} className="px-4 py-2 text-right font-mono text-sm border-t border-gray-200">
+                        {asMillions((data.basics[h.key] || {})[field])}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* DSCR Notching — only when the engine reported it */}
         {data.dscr && (
