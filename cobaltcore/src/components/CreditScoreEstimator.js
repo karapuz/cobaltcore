@@ -202,6 +202,8 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
     const headers = ['Financial Assessment Factor', ...TIME_PERIODS.map(p => p.label.replace('\n', ' '))];
     // Sector and industry travel with the file so a loaded scenario is
     // complete on its own and does not depend on what is selected on screen.
+    // They sit under the caption row; the reader matches on the label, so
+    // their position is presentational only.
     const meta = [
       [SECTOR_ROW_LABEL, sector],
       [INDUSTRY_ROW_LABEL, industry],
@@ -214,7 +216,7 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
       formData[`${factor.key}_twoYearsForward`] || ''
     ]);
 
-    const csvContent = [...meta, headers, ...rows]
+    const csvContent = [headers, ...meta, ...rows]
       .map(row => row.map(csvCell).join(','))
       .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
