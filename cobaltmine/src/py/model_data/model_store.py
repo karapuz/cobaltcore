@@ -55,7 +55,7 @@ PILLAR_DIRECTION = {
     "ebitda_interest": True,
 }
 
-RANGE_BREAKPOINTS = 7   # seven cut points produce eight rating buckets
+RANGE_BREAKPOINTS = 7   # eight cut points produce nine rating buckets
 
 DEFAULT_VELOCITY = {
     "revenue": 1.03,
@@ -65,6 +65,10 @@ DEFAULT_VELOCITY = {
     "total_debt": 1.0,
     "net_debt": 1.0,
     "interest": 1.01,
+    # Tax expense tracks earnings, so it moves with EBITDA rather than
+    # staying flat — a frozen tax charge against a growing EBITDA would
+    # quietly inflate the DSCR numerator every horizon.
+    "income_tax_expense": 1.02,
     "operating_cash_flow": 1.0,
     "short_term_debt": 1.0,
 }
@@ -109,14 +113,14 @@ PILLAR_NAMES = {
 }
 
 BREAKPOINT_TO_RATING = {
-    0: ("AAA",   1),
-    1: ("AA",    3),
-    2: ("A",     6),
-    3: ("BBB",   9),
-    4: ("BB",   12),
-    5: ("B",    15),
-    6: ("CCC",  18),
-    7: ("CC",   20),
+    0: ("AAA",  1),
+    1: ("AA",   4),
+    2: ("A",    7),
+    3: ("BBB",  10),
+    4: ("BB",   13),
+    5: ("B",    16),
+    6: ("CCC",  19),
+    7: ("CC",   21),
 }
 
 

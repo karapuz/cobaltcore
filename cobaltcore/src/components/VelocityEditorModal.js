@@ -12,6 +12,7 @@ export const VELOCITY_FIELDS = [
   { key: 'net_debt', label: 'Net Debt' },
   { key: 'short_term_debt', label: 'Short Term Debt' },
   { key: 'interest', label: 'Interest' },
+  { key: 'income_tax_expense', label: 'Income Tax Expense' },
 ];
 
 // Mirrors velocity_store.MIN_VELOCITY / MAX_VELOCITY so a typo is caught
