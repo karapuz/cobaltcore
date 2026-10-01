@@ -1,7 +1,7 @@
 """
 credit_score.py — the Credit Score Estimator (web layer).
 
-Collects ten financials for three periods from a form and rates them with
+Collects ten financials for three periods (net debt is derived) from a form and rates them with
 the same engine index analysis uses. This module parses, converts units and
 formats; it computes nothing.
 
@@ -35,7 +35,7 @@ FIELD_MAP = {
     "shortTermDebt": "short_term_debt",
     "debt": "debt",
     "totalDebt": "total_debt",
-    "netDebt": "net_debt",
+    "cashEquivalents": "cash_equivalents",
     "freeCashFlow": "free_cash_flow",
     "operatingCashFlow": "operating_cash_flow",
     "interest": "interest",
@@ -83,6 +83,13 @@ def parse_financials(financial_data):
                     status_code=400,
                     detail=f"{form_field} ({period}) is not a number: {raw!r}")
             scenarios[scenario][basic_field] = value * MILLIONS
+
+        # Net debt is derived, never entered: a typed net debt can contradict
+        # the total debt and cash on the same row, and two of the six pillars
+        # read it.
+        scenarios[scenario]["net_debt"] = (
+            scenarios[scenario]["total_debt"]
+            - scenarios[scenario]["cash_equivalents"])
 
     return scenarios
 

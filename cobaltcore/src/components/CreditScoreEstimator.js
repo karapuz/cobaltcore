@@ -38,7 +38,9 @@ const FINANCIAL_FACTORS = [
   { key: 'shortTermDebt', label: 'Short Term Debt', prefix: '$ ', suffix: ' M' },
   { key: 'debt', label: 'Debt', prefix: '$ ', suffix: ' M' },
   { key: 'totalDebt', label: 'Total Debt', prefix: '$ ', suffix: ' M' },
-  { key: 'netDebt', label: 'Net Debt', prefix: '$ ', suffix: ' M' },
+  // Net Debt is not collected — it is derived as Total Debt - Cash &
+  // Equivalents, so the two figures can never disagree.
+  { key: 'cashEquivalents', label: 'Cash & Equivalents', prefix: '$ ', suffix: ' M' },
   { key: 'freeCashFlow', label: 'Free Cash Flow', prefix: '$ ', suffix: ' M' },
   { key: 'operatingCashFlow', label: 'Operating Cash Flow', prefix: '$ ', suffix: ' M' },
   // Interest expense feeds the EBITDA / Interest pillar, which carries real
@@ -146,6 +148,9 @@ export default function CreditScoreEstimator({ user, onBack, onNavigate }) {
     // 5% of the default total debt matches the assumption this row replaces.
     TIME_PERIODS.forEach(period => {
       initial[`interest_${period.key}`] = 4.25;
+      // Zero cash keeps Net Debt equal to Total Debt, which is what the
+      // old Net Debt default produced.
+      initial[`cashEquivalents_${period.key}`] = 0;
       // The blanket 85 here would make DSCR zero and notch every untouched
       // form down a grade; 15 is a plausible tax charge against EBITDA 85.
       initial[`incomeTaxExpense_${period.key}`] = 15;
