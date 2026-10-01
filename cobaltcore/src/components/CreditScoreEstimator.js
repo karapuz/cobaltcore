@@ -36,7 +36,7 @@ const FINANCIAL_FACTORS = [
   { key: 'revenueScale', label: 'Revenue Scale ($ millions)', prefix: '$ ', suffix: ' M' },
   { key: 'ebitda', label: 'EBITDA', prefix: '$ ', suffix: ' M' },
   { key: 'shortTermDebt', label: 'Short Term Debt', prefix: '$ ', suffix: ' M' },
-  { key: 'debt', label: 'Debt', prefix: '$ ', suffix: ' M' },
+  { key: 'debt', label: 'Long Term Debt', prefix: '$ ', suffix: ' M' },
   { key: 'totalDebt', label: 'Total Debt', prefix: '$ ', suffix: ' M' },
   // Net Debt is not collected — it is derived as Total Debt - Cash &
   // Equivalents, so the two figures can never disagree.

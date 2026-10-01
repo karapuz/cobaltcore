@@ -106,10 +106,10 @@ PILLAR_DIRECTION = {
 PILLAR_NAMES = {
     "revenue_scale": "Revenue Scale",
     "ebitda_margin": "EBITDA Margin",
-    "fcf_debt": "Free Cash Flow / Debt",
+    "fcf_debt": "FCF / Total Debt",
     "td_ebitda": "Total Debt / EBITDA",
     "nd_ebitda": "Net Debt / EBITDA",
-    "ebitda_interest": "EBITDA / Interest",
+    "ebitda_interest": "EBITDA / Interest Coverage",
 }
 
 BREAKPOINT_TO_RATING = {
