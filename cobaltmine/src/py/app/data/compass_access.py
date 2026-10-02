@@ -104,6 +104,7 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
         op_cash_flow: float     = ttm_vals["OPERATING_CASH_FLOW"]
         income_tax_expense      = ttm_vals["INCOME_TAX_EXPENSE"]
         net_debt = total_debt - cash_eq
+        print(f"getdata: cash_eq={cash_eq}")
         return {
             "income_tax_expense": income_tax_expense,
             "revenue": revenue, 

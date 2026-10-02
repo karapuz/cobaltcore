@@ -331,7 +331,7 @@ def validate_basic(basic):
     return basic
 
 
-def calculate_pillar_values(basic, basic_ranges=None) -> dict:
+def calculate_pillar_values(value_type, basic, basic_ranges=None) -> dict:
     """
     Six Pillars from one set of basic financials.
 
@@ -342,6 +342,10 @@ def calculate_pillar_values(basic, basic_ranges=None) -> dict:
     """
     validate_basic(basic)
     ranges = basic_ranges or DEFAULT_RANGES
+
+    print(f"calculate_pillar_values: {value_type}")
+    for name, value in basic.items():
+        print(f"\t{name} = {value}")
 
     fcf = basic["free_cash_flow"]
     debt = basic["debt"]
@@ -485,7 +489,7 @@ def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None,
     weights = weights or DEFAULT_WEIGHTS
     velocity = velocity or DEFAULT_VELOCITY
 
-    actual_pillars = calculate_pillar_values(actual_basic, ranges)
+    actual_pillars = calculate_pillar_values("basic", actual_basic, ranges)
 
     forecast_pillars = {}
     forecast_basics = dict(forecast_basics or {})
@@ -493,13 +497,14 @@ def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None,
         forecast_basic = forecast_basics.get(horizon["key"]) or build_forecast(
             actual_basic, horizon["years"], velocity)
         forecast_basics[horizon["key"]] = forecast_basic
-        forecast_pillars[horizon["key"]] = calculate_pillar_values(
+        forecast_pillars[horizon["key"]] = calculate_pillar_values( 
+            str(("forecast_pillars", horizon["key"])),
             forecast_basic, ranges)
 
     # The score path: blend the figures, then rank once.
     blended_basic = blend_basics(actual_basic, velocity,
                                  forecast_basics=forecast_basics)
-    blended_pillars = calculate_pillar_values(blended_basic, ranges)
+    blended_pillars = calculate_pillar_values("blended", blended_basic, ranges)
 
     # DSCR is computed on the blended figures, like every pillar, so the
     # notch reflects the same scenario the score does rather than the
