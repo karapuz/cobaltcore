@@ -6,6 +6,7 @@ from app.data.models import User
 from app.data.schemas import MessageResponse
 from app.auth import get_current_user
 import app.data.json_store as json_store
+from app.data.json_store import DATA_DIR
 
 router = APIRouter()
 
@@ -37,7 +38,10 @@ async def get_credit_rating_pdf(
     """Get PDF report for a credit rating"""
     # Sanitize filename to prevent directory traversal
     safe_id = os.path.basename(computation_id)
-    pdf_path = f"data/pdfs/{safe_id}.pdf"
+    # Resolved against DATA_DIR, not the working directory — a relative
+    # path here means the PDFs are only found when the process happens to
+    # be started from the right folder.
+    pdf_path = os.path.join(DATA_DIR, "pdfs", f"{safe_id}.pdf")
     
     if not os.path.exists(pdf_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF not found")

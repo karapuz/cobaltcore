@@ -6,11 +6,19 @@ from typing import List, Optional
 
 # ─────────────────────────────────────
 # Resolve paths to data files
-# relative to the project root (backend/)
 # ─────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PORTFOLIO_FILE = os.path.join(BASE_DIR, "data", "credit_ratings.json")
-SCENARIOS_FILE = os.path.join(BASE_DIR, "data", "scenarios.json")
+# This module lives at <root>/app/data/json_store.py and the JSON files at
+# <root>/data/. That is three levels up, not two: two lands on <root>/app
+# and resolves to app/data/credit_ratings.json, which does not exist.
+#
+# COMPASS_DATA_DIR overrides the directory, matching entity_store and
+# model_store, so a deployment keeps all its state in one place.
+_PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.environ.get("COMPASS_DATA_DIR",
+                          os.path.join(_PROJECT_ROOT, "data"))
+PORTFOLIO_FILE = os.path.join(DATA_DIR, "credit_ratings.json")
+SCENARIOS_FILE = os.path.join(DATA_DIR, "scenarios.json")
 
 # Separate locks for each file to avoid blocking unrelated operations
 _portfolio_lock = threading.Lock()
@@ -21,8 +29,17 @@ _scenarios_lock = threading.Lock()
 # Generic file helpers
 # ─────────────────────────────────────
 def _read_file(filepath: str) -> dict:
-    """Read and parse a JSON file. Returns empty structure if file missing."""
+    """
+    Read and parse a JSON file.
+
+    A missing file still yields an empty structure, because an account with
+    no saved ratings is a normal state. It is logged, though: the silent
+    version turned a wrong path into "you have no portfolios", which looks
+    like data loss rather than a misconfiguration.
+    """
     if not os.path.exists(filepath):
+        print(f"json_store: {filepath} not found; returning empty store. "
+              f"Set COMPASS_DATA_DIR if the data lives elsewhere.")
         return {"users": {}}
     with open(filepath, "r") as f:
         return json.load(f)
