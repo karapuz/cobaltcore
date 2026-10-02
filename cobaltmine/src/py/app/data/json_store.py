@@ -13,6 +13,8 @@ from typing import List, Optional
 #
 # COMPASS_DATA_DIR overrides the directory, matching entity_store and
 # model_store, so a deployment keeps all its state in one place.
+# COMPASS_DATA_DIR="/home/oper/dev/cobaltcore/cobaltmine/src/py"
+#
 _PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.environ.get("COMPASS_DATA_DIR",

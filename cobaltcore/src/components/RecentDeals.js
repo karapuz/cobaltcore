@@ -14,6 +14,7 @@ const COMPANIES = [
   {
     name: 'Apple Inc.',
     ticker: 'AAPL',
+    compassRating: 'AAA',
     sector: 'Technology',
     revenue: 466.82e9,
     ebitdaMargin: 0.3598,
@@ -24,6 +25,7 @@ const COMPANIES = [
   {
     name: 'Microsoft Corporation',
     ticker: 'MSFT',
+    compassRating: 'AA+',
     sector: 'Technology',
     revenue: 331.84e9,
     ebitdaMargin: 0.5854,
@@ -34,6 +36,7 @@ const COMPANIES = [
   {
     name: 'Johnson & Johnson',
     ticker: 'JNJ',
+    compassRating: 'AA-',
     sector: 'Healthcare',
     revenue: 97.93e9,
     ebitdaMargin: 0.3561,
@@ -42,6 +45,18 @@ const COMPANIES = [
     gradient: 'bg-gradient-to-br from-red-400 to-red-600',
   },
 ];
+
+function getRatingColor(rating) {
+  if (!rating) return 'bg-gray-100 text-gray-800';
+  if (rating.startsWith('AAA')) return 'bg-emerald-100 text-emerald-800';
+  if (rating.startsWith('AA')) return 'bg-green-100 text-green-800';
+  if (rating.startsWith('A')) return 'bg-lime-100 text-lime-800';
+  if (rating.startsWith('BBB')) return 'bg-yellow-100 text-yellow-800';
+  if (rating.startsWith('BB')) return 'bg-amber-100 text-amber-800';
+  if (rating.startsWith('B')) return 'bg-orange-100 text-orange-800';
+  if (rating.startsWith('CCC')) return 'bg-red-100 text-red-800';
+  return 'bg-red-200 text-red-900';
+}
 
 function formatBillions(value) {
   return `$${(value / 1e9).toFixed(1)}B`;
@@ -70,16 +85,25 @@ export default function RecentDeals() {
               key={company.ticker}
               className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all group"
             >
-              <div className={`h-32 ${company.gradient}`}></div>
+              <div className={`h-32 ${company.gradient} flex items-center justify-center`}>
+                <span className="font-mono font-bold text-white text-4xl tracking-wider">
+                  {company.ticker}
+                </span>
+              </div>
               <div className="p-6">
                 <div className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">
                   {company.sector}
                 </div>
 
-                <h3 className="font-bold text-gray-900 mb-1 text-lg">{company.name}</h3>
-                <p className="font-mono text-sm text-gray-500 mb-6">{company.ticker}</p>
+                <h3 className="font-bold text-gray-900 mb-6 text-lg">{company.name}</h3>
 
                 <div className="space-y-3 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 text-sm">Compass Rating</span>
+                    <span className={`inline-block px-3 py-1 rounded text-sm font-bold ${getRatingColor(company.compassRating)}`}>
+                      {company.compassRating}
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-sm">Revenue</span>
                     <span className="font-bold text-gray-900 text-lg">
