@@ -281,15 +281,56 @@ async def put_model_component(
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@router.delete("/v0/model")
+async def reset_all_model_components(
+    ticker_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Return an entity to the defaults for weights, ranges AND velocity, and
+    delete its stored file.
+
+    Distinct from DELETE /v0/model/{component}, which records a revision
+    saying "reverted to defaults" and keeps the history. This discards the
+    overrides entirely, so afterwards the entity reads as never customised.
+    """
+    removed = model.delete(ticker_id)
+    return {
+        "ticker_id": ticker_id,
+        "file_removed": removed,
+        "components": {name: model.get_record(ticker_id, name)
+                       for name in ("weights", "ranges", "velocity")},
+    }
+
+
 @router.delete("/v0/model/{component}")
 async def reset_model_component(
     component: str,
     ticker_id: str,
+    keep_history: bool = False,
     current_user: User = Depends(get_current_user)
 ):
-    """Record an explicit return to the default value for one component."""
+    """
+    Return one component to its defaults.
+
+    By default the component's revisions are discarded, and the entity's
+    file is removed when no other component is left customised — so a reset
+    leaves nothing behind. `keep_history=true` instead records a revision
+    saying "reverted to defaults" and keeps the file, for callers that want
+    the audit trail.
+    """
     try:
-        return model.reset(ticker_id, component,
-                           actor=getattr(current_user, "username", None))
+        if keep_history:
+            return model.reset(ticker_id, component,
+                               actor=getattr(current_user, "username", None))
+        cleared, file_removed = model.clear(ticker_id, component)
     except model.UnknownComponent as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+
+    return {
+        "ticker_id": ticker_id,
+        "component": component,
+        "cleared": cleared,
+        "file_removed": file_removed,
+        **model.get_record(ticker_id, component),
+    }

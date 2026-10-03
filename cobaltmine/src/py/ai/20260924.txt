@@ -8,3 +8,8 @@ There are multiple corrections to be made:
 3. let's call "engine" portion credit_rating.py
 4. examine the first draft of credit_rating, and fix errors
 5. create a unit test that tests "engine". Note, that "engine" module should not have any references to the web realted logic/routes etc.
+
+Notches fix:
+When displaying the notches:
+when DSCR produces -1 (when the rating improves), the screen needs to say "DSCR Notch: Notch Up"
+when DSCR produces +1 (when the rating worsens), the screen needs to say "DSCR Notch: Notch Down"

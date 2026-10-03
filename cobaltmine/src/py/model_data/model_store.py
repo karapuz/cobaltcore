@@ -611,6 +611,62 @@ class ModelStore:
                 os.unlink(tmp)
             raise
 
+    def delete(self, entity_id):
+        """
+        Remove the entity's file entirely, returning it to never-customised.
+
+        Different from reset(), which appends a revision recording a return
+        to the defaults. reset() keeps the audit trail; this discards it.
+        Use reset() unless the caller explicitly wants the overrides gone.
+
+        Returns True if a file was removed, False if there was nothing to
+        remove — deleting an entity that was never customised is a no-op,
+        not an error.
+        """
+        path = self.path_for(entity_id)
+        with self._lock:
+            self._cache.pop(entity_id, None)
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                return False
+        return True
+
+    def clear(self, entity_id, component):
+        """
+        Drop one component's revisions entirely, and remove the file if no
+        component is left customised.
+
+        Between reset() and delete(): reset() records a revision saying
+        "back to defaults" and keeps the file; delete() discards everything
+        for the entity. This discards one component and leaves the others
+        alone, so a velocity-only control cannot silently wipe weights and
+        ranges — but it still leaves no file behind when nothing remains.
+
+        Returns (cleared, file_removed).
+        """
+        _component(component)
+        path = self.path_for(entity_id)
+        with self._lock:
+            doc = self._read_document(entity_id)
+            if doc is None:
+                return False, False
+
+            components = dict(doc.get("components", {}))
+            cleared = components.pop(component, None) is not None
+
+            if not any(c.get("revisions") for c in components.values()):
+                self._cache.pop(entity_id, None)
+                try:
+                    os.remove(path)
+                except FileNotFoundError:
+                    return cleared, False
+                return cleared, True
+
+            self._write_atomic(path, dict(doc, components=components))
+            self._cache.pop(entity_id, None)
+        return cleared, False
+
     def list_customised(self):
         if not os.path.isdir(self.directory):
             return []
@@ -655,6 +711,14 @@ def update(entity_id, component, partial, actor=None, note=None):
 
 def reset(entity_id, component, actor=None, note=None):
     return get_store().reset(entity_id, component, actor, note)
+
+
+def delete(entity_id):
+    return get_store().delete(entity_id)
+
+
+def clear(entity_id, component):
+    return get_store().clear(entity_id, component)
 
 
 def history(entity_id, component):

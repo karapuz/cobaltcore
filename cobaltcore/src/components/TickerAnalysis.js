@@ -36,6 +36,20 @@ function getRatingBadge(rating) {
 // A negative notch IMPROVES the rating and a positive one worsens it, so
 // the signed integer reads backwards to most people — "+1" looks like an
 // upgrade. Show the direction instead.
+// Which model inputs are overridden for this entity. The payload carries
+// a *_is_default flag and a revision number per component.
+function overrideState(data) {
+  if (!data) return [];
+  return [
+    { key: 'weights', label: 'Weights',
+      isDefault: data.weights_is_default, revision: data.weights_revision },
+    { key: 'ranges', label: 'Ranges',
+      isDefault: data.ranges_is_default, revision: data.ranges_revision },
+    { key: 'velocity', label: 'Velocity',
+      isDefault: data.velocity_is_default, revision: data.velocity_revision },
+  ];
+}
+
 function notchLabel(notch) {
   if (notch < 0) return 'Notch Up';
   if (notch > 0) return 'Notch Down';
@@ -153,9 +167,31 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
     }
   };
 
+  // Resets weights, ranges and velocity together and deletes the stored
+  // overrides file, so the entity reads as never customised afterwards.
+  // Reverting local edits alone would leave the persisted values in force.
   const handleReset = async () => {
-    setEditMode(false);
-    await loadPillarData();
+    const overridden = overrideState(data).filter(c => !c.isDefault);
+    if (overridden.length) {
+      const names = overridden.map(c => c.label).join(', ');
+      // eslint-disable-next-line no-restricted-globals
+      if (!window.confirm(
+        `Discard the saved ${names} for ${ticker.ticker_symbol} and delete the ` +
+        `stored overrides file? The revision history goes with it.`)) {
+        return;
+      }
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.resetAllModelComponents(ticker.ticker_id);
+      setEditMode(false);
+      await loadPillarData();
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
   const handleSaveRanges = async (pillarId, newRanges) => {
@@ -239,6 +275,29 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                 </h1>
                 <p className="text-xs text-gray-500">{index.index_name}</p>
               </div>
+              {/* Which model inputs this rating used. A rating produced with
+                  overridden weights, ranges or velocity is not comparable
+                  with one produced on the defaults, so it is labelled. */}
+              {data && (
+                <div className="flex items-center gap-2 ml-2">
+                  {overrideState(data).map(component => (
+                    <span
+                      key={component.key}
+                      title={component.isDefault
+                        ? `${component.label}: platform defaults`
+                        : `${component.label}: custom, revision ${component.revision}`}
+                      className={`px-2 py-1 rounded text-xs font-semibold border ${
+                        component.isDefault
+                          ? 'bg-gray-50 text-gray-500 border-gray-200'
+                          : 'bg-amber-50 text-amber-800 border-amber-300'
+                      }`}
+                    >
+                      {component.label}
+                      {component.isDefault ? '' : ` · r${component.revision}`}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
@@ -394,7 +453,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Debt Service Coverage Ratio</p>
                     <p className="text-xl font-bold text-gray-900">{data.dscr.formatted_value}</p>
-                    <p className="text-xs text-gray-400 mt-1">DSCR =(EBITDA -  Income Tax Expense) / (Interest Expense + Short Term Debt)</p>
+                    <p className="text-xs text-gray-400 mt-1">Operating Cash Flow / (Short Term Debt + Debt)</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Notch Adjustment</p>

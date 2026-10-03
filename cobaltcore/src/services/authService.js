@@ -392,6 +392,17 @@ class AuthService {
     return data;
   }
 
+  // Clears weights, ranges AND velocity, and deletes the entity's stored
+  // overrides file. resetVelocity below only records a revision.
+  async resetAllModelComponents(tickerId) {
+    const response = await this._authFetch(
+      `${API_URL}/v0/model?ticker_id=${encodeURIComponent(tickerId)}`,
+      { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to reset model inputs');
+    return data;
+  }
+
   async resetVelocity(tickerId) {
     const response = await this._authFetch(
       `${API_URL}/v0/model/velocity?ticker_id=${encodeURIComponent(tickerId)}`,
