@@ -312,6 +312,31 @@ class AuthService {
     return data;
   }
 
+  // Annual Index Analysis: ratings for every component of an index across a
+  // range of financial years. `tickerIds` narrows the index to a subset.
+  async getRatingMatrix(indexId, startYear, endYear, tickerIds = null, effectiveDate = null) {
+    const params = new URLSearchParams();
+    if (indexId) params.append('index_id', indexId);
+    if (startYear) params.append('start_year', startYear);
+    if (endYear) params.append('end_year', endYear);
+    if (effectiveDate) params.append('effective_date', effectiveDate);
+    // Repeated key, which is how FastAPI reads a list query parameter.
+    (tickerIds || []).forEach(id => params.append('ticker_id', id));
+
+    const response = await this._authFetch(`${API_URL}/v0/ratings/matrix?${params}`);
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      // A 404 from an unregistered router, or a 500 page, is not JSON.
+      throw new Error(`Rating matrix request failed (HTTP ${response.status}).`);
+    }
+    if (!response.ok) {
+      throw new Error(data.detail || `Rating matrix request failed (HTTP ${response.status}).`);
+    }
+    return data;
+  }
+
   async getPillarValues(tickerId, effectiveDate = null) {
     const params = new URLSearchParams();
     params.append('ticker_id', tickerId);

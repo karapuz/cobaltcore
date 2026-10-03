@@ -37,7 +37,7 @@ DATA_YEAR = "2025"
 # Data access
 # ─────────────────────────────────────
 
-def fetch_basic_financials(symbol, year=DATA_YEAR):
+def fetch_basic_financials(symbol, year=DATA_YEAR, ttm=True):
     """
     The nine basic figures for one ticker symbol.
 
@@ -45,13 +45,23 @@ def fetch_basic_financials(symbol, year=DATA_YEAR):
     figure that reaches the engine as a zero produces a plausible and
     wrong rating, which is worse than an error.
     """
-    basic = compass_access.getdata(
-        symbol=symbol, year=year)
+    # ttm=True (the default) accumulates the trailing four quarters, which
+    # is what Index Analysis has always used. The annual service passes
+    # ttm=False to get the filed annual figures for `year` instead, so each
+    # year in a multi-year table is a distinct period rather than the same
+    # rolling window.
+    basic = compass_access.getdata(symbol=symbol, year=year, ttm=ttm)
 
     if not basic:
         raise HTTPException(
             status_code=404,
             detail=f"No financials available for {symbol} in {year}")
+
+    # getdata falls forward a year or two when the requested year has no
+    # filings. Strip the marker before the dict reaches the engine, which
+    # multiplies every value by a velocity, and report it so a cell can say
+    # which year it actually used.
+    resolved_year = basic.pop("_resolved_year", str(year))
 
     missing = [field for field in BASIC_FIELDS
                if basic.get(field) is None]
@@ -61,7 +71,7 @@ def fetch_basic_financials(symbol, year=DATA_YEAR):
             detail=(f"Incomplete financials for {symbol} in {year}; "
                     f"missing: {sorted(missing)}"))
 
-    return basic
+    return basic, resolved_year
 
 
 def resolve_ticker(entity_id, as_of=None):
@@ -83,14 +93,14 @@ def resolve_ticker(entity_id, as_of=None):
 # Response assembly
 # ─────────────────────────────────────
 
-def build_pillar_response(entity_id, as_of=None):
+def build_pillar_response(entity_id, as_of=None, year=DATA_YEAR, ttm=True):
     """
     The engine's result plus the identity and revision metadata the UI
     needs. Model inputs are read at request time so the latest persisted
     revision is what scores this request.
     """
     symbol, name = resolve_ticker(entity_id, as_of)
-    actual_basic = fetch_basic_financials(symbol)
+    actual_basic, resolved_year = fetch_basic_financials(symbol, year, ttm)
     records = model.get_all(entity_id)
 
     result = build_credit_rating(
@@ -105,7 +115,9 @@ def build_pillar_response(entity_id, as_of=None):
         "ticker_symbol": symbol,
         "corporate_name": name,
         "as_of": as_of,
-        "data_year": DATA_YEAR,
+        "data_year": resolved_year,
+        "requested_year": str(year),
+        "ttm": ttm,
         "velocity_revision": records["velocity"]["revision"],
         "velocity_is_default": records["velocity"]["is_default"],
         "weights_revision": records["weights"]["revision"],

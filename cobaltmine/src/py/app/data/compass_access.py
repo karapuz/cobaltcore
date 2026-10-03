@@ -9,6 +9,10 @@ import os
 import rating.conf.const as rating_const
 
 from collections import defaultdict
+from contextlib import contextmanager
+from contextvars import ContextVar
+import threading
+
 past_periods = 10
 env_name: str = str(os.getenv("ENV_DATA_NAME"))
 pallette = "STEEL_BLUE"
@@ -29,7 +33,80 @@ attributes = {
     "EBITDA": CUMULATIVE,
 }
 
-def getdata(symbol, year, ttm:bool=True) -> dict:
+# ─────────────────────────────────────
+# SymbolDataKeeper cache
+# ─────────────────────────────────────
+#
+# Building a keeper is the expensive part of getdata, and the annual service
+# asks for the same symbol once per year in the range — five identical
+# constructions for a five-year column. Within a session the keeper is built
+# once per symbol and reused.
+#
+# "Session" is explicit and scoped by symbol_session(). Outside one, nothing
+# is cached and behaviour is exactly as before: a long-lived process-wide
+# cache would serve yesterday's filings indefinitely, which is the wrong
+# default for a ratings system.
+#
+# The cache lives in a ContextVar, so under FastAPI each request gets its
+# own and concurrent requests cannot share or evict each other's keepers.
+
+_session_cache: ContextVar = ContextVar("compass_symbol_cache", default=None)
+_cache_lock = threading.Lock()
+
+
+@contextmanager
+def symbol_session():
+    """
+    Reuse SymbolDataKeeper instances for the duration of the block.
+
+        with compass_access.symbol_session():
+            for year in years:
+                getdata(symbol, year, ttm=False)   # one keeper, not five
+
+    Nests safely: an inner session reuses the outer cache rather than
+    starting a second one, so a helper that opens a session does not
+    discard the caller's.
+    """
+    existing = _session_cache.get()
+    if existing is not None:
+        yield existing
+        return
+
+    cache = {}
+    token = _session_cache.set(cache)
+    try:
+        yield cache
+    finally:
+        # Dropped on exit. Keepers are held only as long as the work that
+        # needed them.
+        _session_cache.reset(token)
+        cache.clear()
+
+
+def get_symbol_data_keeper(symbol):
+    """
+    A keeper for `symbol`, from the session cache when one is open.
+
+    Must be called inside the Tweaks context, same as a direct construction:
+    a cached keeper is reused under the tweaks in force at call time, not
+    the ones it was built under.
+    """
+    cache = _session_cache.get()
+    if cache is None:
+        return access.SymbolDataKeeper(symbol, debug=False)
+
+    keeper = cache.get(symbol)
+    if keeper is None:
+        with _cache_lock:
+            keeper = cache.get(symbol)
+            if keeper is None:
+                keeper = access.SymbolDataKeeper(symbol, debug=False)
+                cache[symbol] = keeper
+                print(f"getdata: built keeper for {symbol} ({len(cache)} cached)")
+    return keeper
+
+
+def getdata(symbol, year, ttm: bool = True) -> dict:
     tweaks_ = {
         tweak_const.TRANSCRIPT_ROOT: "/tmp/transcript", 
         tweak_const.TRANSCRIPT_DATE: env_name,
@@ -45,27 +122,31 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
 
     with twkcx.Tweaks(**tweaks):
         ttm_vals = defaultdict(float)
-        dk = access.SymbolDataKeeper(symbol, debug=False)
+        dk = get_symbol_data_keeper(symbol)
         if not ttm:
-            year_int = int(year)
             found_y = None
-            for y in [year_int+2, year_int+1, year_int]:
-                if found_y:
+            ttm_vals = defaultdict(float)
+            date_tag = access.get_date_tag(year=year)
+            found_y = date_tag
+            for attr, acc_type in attributes.items():
+                val = dk.get_val(attr, date_tag=date_tag, throw=False)
+                if isinstance(val, rating_const.WRAPPED_VALUE):
+                    print(f"getdata: skipping {attr} for {date_tag}")
+                    found_y = None
                     break
-                ttm_vals = defaultdict(float)
-                date_tag = access.get_date_tag(year=y)
-                found_y = date_tag
-                for attr, acc_type in attributes.items():
-                    val = dk.get_val(attr, date_tag=date_tag, throw=False)
-                    if isinstance(val, rating_const.WRAPPED_VALUE):
-                        print(f"getdata: skipping {attr} for {date_tag}")
-                        found_y = None
-                        break
-                    ttm_vals[attr] = val
-            print(f"getdata: found {found_y}")
+                ttm_vals[attr] = val
+            print(f"getdata: requested {year}, found {found_y}")
+
+            # Nothing for this year or the two after it. Returning the
+            # defaultdict here hands back zeros for every figure, which rate
+            # as a real company with no revenue instead of failing.
+            if not found_y:
+                return None
+            resolved_year = year
             # ebitda : float = rating_model_engine.compute_ebitda(dk=dk, date_tag=found_y)
             # ttm_vals["EBITDA"] = ebitda
         else:
+            resolved_year = int(year)
             found_q = {}
             pit_q = set()
             year_int = int(year)
@@ -106,6 +187,10 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
         net_debt = total_debt - cash_eq
         print(f"getdata: cash_eq={cash_eq}")
         return {
+            # Which year actually supplied the figures. May differ from the
+            # requested year when the forward fallback fired. Callers strip
+            # this before handing the dict to the rating engine.
+            "_resolved_year": str(resolved_year),
             "income_tax_expense": income_tax_expense,
             "revenue": revenue, 
             "ebitda": ebitda,
@@ -117,4 +202,3 @@ def getdata(symbol, year, ttm:bool=True) -> dict:
             "operating_cash_flow": op_cash_flow,
             "short_term_debt": short_term_debt
         }
-

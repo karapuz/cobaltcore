@@ -15,6 +15,7 @@ import ScenarioSurface from './components/ScenarioSurface';
 import CreditScoreEstimator from './components/CreditScoreEstimator';
 import CreditScoreResults from './components/CreditScoreResults';
 import IndexSelector from './components/IndexSelector';
+import AnnualIndexAnalysis from './components/AnnualIndexAnalysis';
 import TickerAnalysis from './components/TickerAnalysis';
 import UnderConstruction from './components/UnderConstruction';
 import About from './components/About';
@@ -114,6 +115,8 @@ export default function App() {
         return <IndexSelector user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
       case 'ticker-analysis':
         return <TickerAnalysis user={user} onBack={() => handleNavigate('index-selector')} analysisData={tickerAnalysisData} />;
+      case 'annual-index-analysis':
+        return <AnnualIndexAnalysis user={user} onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />;
       case 'about':
         return <About user={user} onBack={() => handleNavigate('home')} />;
       case 'home':

@@ -6,7 +6,7 @@ from app.data.config import get_settings
 from app.data.database import engine, Base
 from app.routers import users
 from app.profile import portfolio, scenarios, scenario_surface
-from app.generators import credit_score, index_analysis
+from app.generators import credit_score, index_analysis, rating_matrix
 
 # ─────────────────────────────────────
 # App setup
@@ -41,6 +41,7 @@ app.include_router(scenarios.router, prefix="/api", tags=["Scenarios"])
 app.include_router(scenario_surface.router, prefix="/api", tags=["Scenario Surface"])
 app.include_router(credit_score.router, prefix="/api", tags=["Credit Score"])
 app.include_router(index_analysis.router, prefix="/api", tags=["Index Analysis"])
+app.include_router(rating_matrix.router, prefix="/api", tags=["Annual Index Analysis"])
 
 # ─────────────────────────────────────
 # Health check
@@ -67,6 +68,14 @@ if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
 """
+Local:
+    uvicorn app.main:app --reload --port 8000
+
+Production (single worker — the JSON model store is not multi-process safe):
+    uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+
+    curl http://localhost:8000/api/health
+
 Local:
     uvicorn app.main:app --reload --port 8000
 
