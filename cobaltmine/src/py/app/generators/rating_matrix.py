@@ -104,7 +104,9 @@ def summarise(result):
         "base_rating": result["base_rating"],
         "base_score": result["base_score"],
         "dscr": result["dscr"]["formatted_value"],
+        "dscr_value": result["dscr"]["value"],
         "dscr_notch": result["dscr"]["notch"],
+        "dscr_notch_reason": result["dscr"]["notch_reason"],
         "pillar_ranks": {row["id"]: row["blended_numeric_rank"]
                          for row in result["pillars"]},
     }

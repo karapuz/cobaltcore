@@ -25,6 +25,35 @@ function getRatingColor(rating) {
   return 'bg-red-200 text-red-900';
 }
 
+// What the grid shows. The payload carries all three, so switching is a
+// client-side toggle rather than another 150-cell request.
+const VIEWS = [
+  { key: 'rating', label: 'Compass Rating' },
+  { key: 'dscr', label: 'DSCR' },
+  { key: 'score', label: 'Base Score' },
+];
+
+// A negative notch improves the rating, a positive one worsens it — so the
+// signed integer reads backwards. Show the direction.
+function notchLabel(notch) {
+  if (notch < 0) return 'Notch Up';
+  if (notch > 0) return 'Notch Down';
+  return 'No Change';
+}
+
+function notchColor(notch) {
+  if (notch < 0) return 'text-green-600';
+  if (notch > 0) return 'text-red-600';
+  return 'text-gray-400';
+}
+
+// The bands calculate_dscr_notch applies: >= 1.8 up, < 1.0 down.
+function dscrColor(notch) {
+  if (notch < 0) return 'bg-green-100 text-green-800';
+  if (notch > 0) return 'bg-red-100 text-red-800';
+  return 'bg-gray-100 text-gray-700';
+}
+
 export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
   const [indices, setIndices] = useState([]);
   const [indexId, setIndexId] = useState('');
@@ -34,6 +63,7 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
   const [tickers, setTickers] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [tickerSearch, setTickerSearch] = useState('');
+  const [view, setView] = useState('rating');
   const [loadingTickers, setLoadingTickers] = useState(false);
   const [matrix, setMatrix] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -146,7 +176,7 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
       `Rated,${matrix.rated},Failed,${matrix.failed}`,
       '',
       ['Ticker', 'Company', 'Year', 'Compass Rating', 'Base Rating',
-        'Base Score', 'DSCR', 'DSCR Notch',
+        'Base Score', 'DSCR', 'DSCR Notch', 'DSCR Notch Reason',
         ...PILLARS.map(p => `${p.short} rank`), 'Error'].join(','),
     ];
 
@@ -157,7 +187,7 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
           esc(entity.ticker), esc(entity.name), year,
           esc(cell.compass_rating), esc(cell.base_rating),
           cell.base_score !== undefined ? cell.base_score.toFixed(2) : '',
-          esc(cell.dscr), cell.dscr_notch ?? '',
+          esc(cell.dscr), esc(notchLabel(cell.dscr_notch)), esc(cell.dscr_notch_reason),
           ...PILLARS.map(p => (cell.pillar_ranks || {})[p.id] ?? ''),
           esc(cell.error),
         ].join(','));
@@ -385,6 +415,24 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
 
         {matrix && !loading && (
           <>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {VIEWS.map(option => (
+                  <button
+                    key={option.key}
+                    onClick={() => setView(option.key)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition ${
+                      view === option.key
+                        ? 'bg-gray-900 text-white border-gray-900'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
               <span>{matrix.entities.length} companies</span>
               <span>{matrix.years.length} years</span>
@@ -425,14 +473,64 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
                             </td>
                           );
                         }
+                        // getdata falls forward when a year has no filings,
+                        // so a cell can be showing a different year. Flag it
+                        // rather than letting it pass as this year's figures.
+                        const fellBack = cell.data_year
+                          && String(cell.data_year) !== String(year);
+                        const dscrTitle = `DSCR ${cell.dscr} — ${cell.dscr_notch_reason || ''} (${notchLabel(cell.dscr_notch)})`;
                         return (
                           <td key={year} className="px-4 py-3 text-center">
-                            <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(cell.compass_rating)}`}>
-                              {cell.compass_rating}
-                            </span>
-                            <p className="text-xs text-gray-400 mt-1 font-mono">
-                              {cell.base_score.toFixed(2)}
-                            </p>
+                            {view === 'rating' && (
+                              <>
+                                <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${getRatingColor(cell.compass_rating)}`}>
+                                  {cell.compass_rating}
+                                </span>
+                                {/* The notch is what separates the base rating
+                                    from the final one, so it is shown beside
+                                    it rather than hidden in a tooltip. */}
+                                <p
+                                  className={`text-xs mt-1 font-mono ${notchColor(cell.dscr_notch)}`}
+                                  title={dscrTitle}
+                                >
+                                  {cell.base_score.toFixed(2)}
+                                  {cell.dscr_notch !== 0 && (cell.dscr_notch < 0 ? ' ▲' : ' ▼')}
+                                </p>
+                              </>
+                            )}
+
+                            {view === 'dscr' && (
+                              <>
+                                <span
+                                  className={`inline-block px-2 py-1 rounded text-xs font-bold ${dscrColor(cell.dscr_notch)}`}
+                                  title={dscrTitle}
+                                >
+                                  {cell.dscr}
+                                </span>
+                                <p className={`text-xs mt-1 ${notchColor(cell.dscr_notch)}`}>
+                                  {notchLabel(cell.dscr_notch)}
+                                </p>
+                              </>
+                            )}
+
+                            {view === 'score' && (
+                              <>
+                                <span className="font-mono text-sm text-gray-900">
+                                  {cell.base_score.toFixed(2)}
+                                </span>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {cell.base_rating}
+                                </p>
+                              </>
+                            )}
+                            {fellBack && (
+                              <p
+                                className="text-xs text-amber-600 mt-0.5"
+                                title={`No ${year} filings; showing ${cell.data_year}`}
+                              >
+                                FY{cell.data_year}
+                              </p>
+                            )}
                           </td>
                         );
                       })}
@@ -443,8 +541,10 @@ export default function AnnualIndexAnalysis({ user, onBack, onNavigate }) {
             </div>
 
             <p className="text-xs text-gray-400 mt-4">
-              Badge is the Compass rating after DSCR notching; the figure beneath is the base score.
-              A dash means no annual filings were available for that year — hover for the reason.
+              {view === 'rating' && 'Badge is the Compass rating after DSCR notching; beneath it the base score, with ▲/▼ where the notch moved the rating.'}
+              {view === 'dscr' && 'DSCR = (EBITDA - income tax expense) / (interest + short term debt), on the blended figures. Green notches up at ≥ 1.8, red notches down below 1.0.'}
+              {view === 'score' && 'Weighted blended rank before notching, with the rating it falls in.'}
+              {' '}A dash means no annual filings were available for that year — hover for the reason.
             </p>
           </>
         )}
