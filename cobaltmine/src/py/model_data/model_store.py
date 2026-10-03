@@ -88,10 +88,10 @@ DEFAULT_RANGES = {
 DEFAULT_WEIGHTS = {
     "revenue_scale":    0.15,
     "ebitda_margin":    0.15,
-    "fcf_debt":         0.20,
-    "td_ebitda":        0.20,
-    "nd_ebitda":        0.15,
-    "ebitda_interest":  0.15,
+    "fcf_debt":         0.25,
+    "td_ebitda":        0.25,
+    "nd_ebitda":        0.10,
+    "ebitda_interest":  0.10,
 }
 
 PILLAR_DIRECTION = {
