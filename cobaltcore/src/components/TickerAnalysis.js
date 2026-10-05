@@ -498,7 +498,7 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Debt Service Coverage Ratio</p>
                     <p className="text-xl font-bold text-gray-900">{data.dscr.formatted_value}</p>
-                    <p className="text-xs text-gray-400 mt-1">Operating Cash Flow / (Short Term Debt + Debt)</p>
+                    <p className="text-xs text-gray-400 mt-1">(EBITDA - INCOME_TAX_EXPENSE) / (INTEREST + SHORT_TERM_DEBT)</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Notch Adjustment</p>
