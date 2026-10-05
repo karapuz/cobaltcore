@@ -38,6 +38,23 @@ function getRatingBadge(rating) {
 // upgrade. Show the direction instead.
 // Which model inputs are overridden for this entity. The payload carries
 // a *_is_default flag and a revision number per component.
+// The basic financials, in a stable order for export. Driven off the
+// payload rather than hardcoded presence, so a new field appears without a
+// code change here.
+const BASIC_ROWS = [
+  ['revenue', 'Revenue'],
+  ['ebitda', 'EBITDA'],
+  ['short_term_debt', 'Short Term Debt'],
+  ['debt', 'Long Term Debt'],
+  ['total_debt', 'Total Debt'],
+  ['cash_equivalents', 'Cash & Equivalents'],
+  ['net_debt', 'Net Debt'],
+  ['free_cash_flow', 'Free Cash Flow'],
+  ['operating_cash_flow', 'Operating Cash Flow'],
+  ['interest', 'Interest Expense'],
+  ['income_tax_expense', 'Income Tax Expense'],
+];
+
 function overrideState(data) {
   if (!data) return [];
   return [
@@ -242,7 +259,35 @@ export default function TickerAnalysis({ user, onBack, analysisData }) {
       `DSCR Notch,${notchLabel(data.dscr.notch)} (${data.dscr.notch_reason})`,
       '',
       `Base Rating,${data.base_rating}`,
-      `Compass Rating,${data.compass_rating}`
+      `Compass Rating,${data.compass_rating}`,
+      '',
+      // The figures every column above was computed from. Exported in the
+      // engine's own units so a surprising rating can be traced back to its
+      // inputs without reversing any formatting.
+      ...(data.actual_basic
+        ? [
+            'Basic values (absolute currency units)',
+            ['Financial', 'Actual',
+              ...FORECAST_HORIZONS.map(h => h.label),
+              'Blended'].join(','),
+            ...BASIC_ROWS
+              .filter(([field]) => data.actual_basic[field] !== undefined)
+              .map(([field, label]) => [
+                label,
+                data.actual_basic[field],
+                ...FORECAST_HORIZONS.map(
+                  h => ((data.forecast_basics || {})[h.key] || {})[field] ?? ''),
+                (data.blended_basic || {})[field] ?? '',
+              ].join(',')),
+            '',
+            // Velocity explains the gap between the actual and forecast
+            // columns, so it travels with them.
+            'Projection velocity',
+            ...VELOCITY_FIELDS
+              .filter(f => (data.velocity || {})[f.key] !== undefined)
+              .map(f => `${f.label},${data.velocity[f.key]}`),
+          ]
+        : []),
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);

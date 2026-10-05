@@ -560,6 +560,11 @@ def build_credit_rating(actual_basic, ranges=None, weights=None, velocity=None,
         "velocity": velocity,
         "forecast_horizons": FORECAST_HORIZONS,
         "score_blend": SCORE_BLEND,
+        # The figures each column was computed from. Returned so a caller
+        # can show or export the inputs without re-deriving the forecasts
+        # and risking drift from how they were actually built here.
+        "actual_basic": actual_basic,
+        "forecast_basics": forecast_basics,
         "blended_basic": blended_basic,
         "total_weight": total_weight,
         "dscr": {
