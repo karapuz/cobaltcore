@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity, TrendingUp, Calculator, LineChart } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, BarChart3, Activity, TrendingUp, Calculator, LineChart, Flag, Table } from 'lucide-react';
 
 export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -7,6 +7,7 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [methodologiesMenuOpen, setMethodologiesMenuOpen] = useState(false);
   const [companyMenuOpen, setCompanyMenuOpen] = useState(false);
+  const [investorsMenuOpen, setInvestorsMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50 shadow-sm">
@@ -52,10 +53,40 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                 </>
               )}
             </div>
-            <div className="relative group">
-              <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
-                For Investors <ChevronDown className="w-4 h-4" />
+            <div className="relative">
+              <button
+                onClick={() => setInvestorsMenuOpen(!investorsMenuOpen)}
+                className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1"
+              >
+                For Investors <ChevronDown className={`w-4 h-4 transition-transform ${investorsMenuOpen ? 'rotate-180' : ''}`} />
               </button>
+
+              {investorsMenuOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setInvestorsMenuOpen(false)}
+                  ></div>
+
+                  {/* Dropdown */}
+                  <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-20">
+                    <button
+                      onClick={() => {
+                        onNavigate('multi-flag-credit-alerts');
+                        setInvestorsMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-start gap-3"
+                    >
+                      <Flag className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Multi-Flag Credit Alerts</p>
+                        <p className="text-xs text-gray-500">Five-flag surveillance on tickers and private credit</p>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
             <div className="relative group">
               <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
@@ -369,12 +400,12 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                         }}
                         className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-3"
                       >
-                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                          <BarChart3 className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
+                          <Table className="w-4 h-4 text-indigo-600" />
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">Annual Index Analysis</p>
-                          <p className="text-xs text-gray-500">Ratings Across Years</p>
+                          <p className="text-xs text-gray-500">Ratings by Year across an Index</p>
                         </div>
                       </button>
                     </div>
@@ -511,7 +542,26 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
               )}
             </div>
             
-            <button className="block text-gray-700 font-medium py-2 text-left w-full">For Investors</button>
+            {/* For Investors Expandable */}
+            <div>
+              <button
+                onClick={() => setInvestorsMenuOpen(!investorsMenuOpen)}
+                className="flex items-center justify-between w-full text-gray-700 font-medium py-2"
+              >
+                For Investors
+                <ChevronDown className={`w-4 h-4 transition-transform ${investorsMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {investorsMenuOpen && (
+                <div className="pl-4 pt-2 space-y-2">
+                  <button
+                    onClick={() => { onNavigate('multi-flag-credit-alerts'); setMobileMenuOpen(false); }}
+                    className="block text-sm text-gray-600 hover:text-gray-900 py-1.5 text-left"
+                  >
+                    Multi-Flag Credit Alerts
+                  </button>
+                </div>
+              )}
+            </div>
             <button className="block text-gray-700 font-medium py-2 text-left w-full">For Borrowers</button>
             
             {/* Methodologies Expandable */}
@@ -647,12 +697,12 @@ export default function Header({ onSignUpClick, user, onLogout, onNavigate }) {
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition"
                   >
-                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 text-blue-600" />
+                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
+                      <Table className="w-4 h-4 text-indigo-600" />
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-medium text-gray-900">Annual Index Analysis</p>
-                      <p className="text-xs text-gray-500">Ratings Across Years</p>
+                      <p className="text-xs text-gray-500">Ratings by Year across an Index</p>
                     </div>
                   </button>
                 </div>
