@@ -12,7 +12,7 @@ export default function Hero({ onSignUpClick }) {
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-5xl mx-auto">
           <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
-            Private credit. <span className="italic">Simplified.</span>
+            Private Credit. <span className="italic">Simplified.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-4xl mx-auto">
             Join thousands of investors who have improve their chances to fund by using Compass. Start your journey in private credit investing today.
