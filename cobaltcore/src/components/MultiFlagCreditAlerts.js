@@ -12,7 +12,7 @@ const FLAGS = [
     title: 'EBITDA core vs EBITDA adjusted discrepancies',
     subtitle: '',
     body: [
-      'FMP EBITDA API conservative version: netIncome + depreciationAndAmortization + incomeTaxExpense + interestExpense, compared against the "market normalization" EBITDA adjusted (add-backs).',
+      'EBITDA: netIncome + depreciationAndAmortization + incomeTaxExpense + interestExpense, compared against the "market normalization" EBITDA adjusted (add-backs).',
       'If EBITDA discrepancy is 20% or greater, we flag this metric for the investor who inputted that ticker or private credit data into our portal.',
     ],
     note: 'Team owner to opine on add-backs that can potentially inflate EBITDA performance.',
@@ -47,7 +47,7 @@ const FLAGS = [
       'ASC 842: Compass tracks and documents when certain capital or financial obligations are material to future debt loads',
       'AI hyperscaler future compute commitments measure in the trillions.',
     ],
-    note: 'Include "Unrecorded Contractual Purchase Commitments", which leads to future debt obligations. Compass believes there are corporates that hold off-balance sheet leverage that has not been realized due to ASC 842, and tracks these commitments when they reach thresholds of greater than $100B',
+    note: 'AI hyperscaler include "Unrecorded Contractual Purchase Commitments", which leads to future debt obligations. Compass believes there are corporates that hold off-balance sheet leverage that has not been realized due to ASC 842, and tracks these commitments when they reach thresholds of greater than $100B',
   },
   {
     id: 5,
