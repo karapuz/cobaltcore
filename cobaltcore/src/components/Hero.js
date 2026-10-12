@@ -8,10 +8,10 @@ export default function Hero({ onSignUpClick }) {
   ];
 
   const points = [
-    'Credit ratings that can be torn, put together, and continuously monitored.',
+    'Credit ratings that can be torn apart, put back together, and continuously monitored.',
     'Credit ratings that are auditable, comparable, and simple. No more "black box" analysis.',
     'Ratings that reflect up-to-date financial information in an ever changing credit environment.',
-    'Ratings that reflect debt impacts on future financial performance, and ratings that are flagged when financial indicators point to increased risk.'
+    'Ratings that reflect debt impacts on future financial performance, and that are flagged when financial indicators point to increased risk.'
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function Hero({ onSignUpClick }) {
             Credit Ratings. <span className="italic">Simplified.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-4xl mx-auto">
-            Compass guides investors and borrowers navigating credit ratings for public companies, and opaque world of private credit
+            Compass guides investors and borrowers navigating credit ratings for public companies, and the opaque world of private credit.
           </p>
 
           <div className="text-left max-w-2xl mx-auto mb-12 space-y-3">
