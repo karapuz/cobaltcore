@@ -11,27 +11,27 @@ export default function Features() {
     {
       icon: <DollarSign className="w-10 h-10" />,
       title: 'Knowledge is power.',
-      description: 'Indicate your target credit rating, and research options to reach it. Knowing your target makes it possible to improve funding.'
+      description: 'Indicate your target credit rating, and research options to reach it. Knowing your target makes it possible to improve funding - using our Credit Score Estimator.'
     },
     {
       icon: <BarChart3 className="w-10 h-10" />,
-      title: 'Diversification by design.',
-      description: 'Gain understanding of your exposure due to credit ratings for individual deals.'
+      title: 'Diversification by Issuer, Sector, or Index.',
+      description: 'Gain understanding of your exposure across indices or idividual corporations. Our platform rates thousands of public companies and private corporations using our ratings platform.'
     },
     {
       icon: <Eye className="w-10 h-10" />,
       title: 'Understand market impact.',
-      description: 'With our proprietary technology, research how credit rating can react to market conditions. Access comprehensive market and economics scenario database.'
+      description: 'With our proprietary technology, research how credit rating will react to market conditions. Access comprehensive market and economics scenario database to view how a downturn may impact yout credit quality'
     },
     {
       icon: <TrendingUp className="w-10 h-10" />,
       title: 'A partner in business',
-      description: 'Compass Analytics is founded by professionals that understand this business well. We are welcome questions and eager to help your business florish.'
+      description: 'Compass Ratings is founded by professionals that understand ratings and private credit. We welcome questions and will help your business.'
     },
     {
       icon: <Shield className="w-10 h-10" />,
       title: 'Expert support from professionals.',
-      description: 'Our knowledgeable Investor Relations team is there to offer hepl with getting things done – just call or email us.'
+      description: 'Our knowledgeable Analytical team is there to offer insights – just call or email us.'
     }
   ];
 
@@ -40,10 +40,10 @@ export default function Features() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <p className="text-xs font-semibold text-gray-400 mb-6 tracking-wider uppercase">
-            BUILT FOR MODERN ECONOMY  |
+            BUILT FOR TODAY'S ECONOMY  |
           </p>
           <h2 className="text-5xl font-bold text-gray-900 mb-8 leading-tight max-w-4xl mx-auto">
-            Funding is hard. We make it easier.
+            Understanding rating is hard. We make it easier.
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Compass innovative platform empowers investors to assess quality of investments, improving investing quality.

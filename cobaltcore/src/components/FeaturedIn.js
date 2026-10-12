@@ -8,10 +8,9 @@ export default function FeaturedIn() {
           Featured In  |
         </p>
         <div className="flex flex-wrap justify-center items-center gap-16 opacity-30">
-          <div className="text-2xl font-bold tracking-tight">FINTECH MAG</div>
           <div className="text-2xl font-bold tracking-tight">NASDAQ</div>
           <div className="text-2xl font-bold tracking-tight">BLOOMBERG</div>
-          <div className="text-2xl font-bold tracking-tight">TECHCRUNCH</div>
+          <div className="text-2xl font-bold tracking-tight">WALL STREET JOURNAL</div>
         </div>
       </div>
     </section>

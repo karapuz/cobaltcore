@@ -133,7 +133,7 @@ export default function RecentDeals() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-10">
-          Trailing twelve months. Source: company filings via stockanalysis.com, retrieved October 2026.
+          Trailing twelve months, retrieved October 2026.
         </p>
       </div>
     </section>
