@@ -10,10 +10,10 @@ const FLAGS = [
     icon: ShieldAlert,
     accent: 'bg-red-50 text-red-600',
     title: 'EBITDA core vs EBITDA adjusted discrepancies',
-    subtitle: 'aka "marketed EBITDA"',
+    subtitle: '',
     body: [
       'FMP EBITDA API conservative version: netIncome + depreciationAndAmortization + incomeTaxExpense + interestExpense, compared against the "market normalization" EBITDA adjusted (add-backs).',
-      'If the discrepancy is 20% or greater between these two, we flag this metric for the investor who inputted that ticker or private credit data into our portal (or holds it within their portfolio).',
+      'If EBITDA discrepancy is 20% or greater, we flag this metric for the investor who inputted that ticker or private credit data into our portal.',
     ],
     note: 'Team owner to opine on add-backs that can potentially inflate EBITDA performance.',
   },
@@ -22,9 +22,9 @@ const FLAGS = [
     icon: UserX,
     accent: 'bg-orange-50 text-orange-600',
     title: 'Founder-owned and operated business with a history of fraud allegations',
-    subtitle: 'including recently filed accusations',
+    subtitle: '',
     body: [
-      'As part of this investor protection service, install an AI/agent or news alert tracker on (A) the name of the C-suite executive(s), and (B) the rated entity / company.',
+      'As part of this investor protection service, Compass AI-agent and news alert tracks the names of the C-suite executive(s), and the rated entity / company. In the instance of a match alleging fraud allegations, Compass flags this as part of its MFCA system and alerts the investor(s) who review the alert as material or not applicable.',
     ],
   },
   {
@@ -34,7 +34,7 @@ const FLAGS = [
     title: 'Special Purpose Vehicles (SPVs) used to keep debt off balance sheet',
     subtitle: 'detection',
     body: [
-      'As above, develop an AI/agent or EDGAR LLM alert/tracker on SEC filings that suggest SPVs and debt consolidations.',
+      'As above, Compass AI-agent reviews EDGAR/SEC filings (or audited financials) and sends an alert to the subscriber when filings suggest the appearance of SPVs being used to keep debt off balance sheets.',
     ],
   },
   {
@@ -44,10 +44,10 @@ const FLAGS = [
     title: 'Capital and finance lease obligations added to total debt exposure',
     subtitle: 'ASC 842',
     body: [
-      'To discuss as a team given ASC 842: is there business value in tracking and documenting when certain capital or finance lease obligations are material to future debt loads?',
-      'There is, if you take the AI hyperscaler lease obligations as an example, which measure in the trillions. This is straightforward to pull from the FMP API. We would duplicate our IADOW model but add capital lease obligations to debt (long, short, net, total).',
+      'ASC 842: Compass tracks and documents when certain capital or financial obligations are material to future debt loads',
+      'AI hyperscaler future compute commitments measure in the trillions.',
     ],
-    note: 'Team to discuss whether we should include "Unrecorded Contractual Purchase Commitments", given the rise of AI hyperscaler credits that some feel are future debt obligations.',
+    note: 'Include "Unrecorded Contractual Purchase Commitments", which leads to future debt obligations. Compass believes there are corporates that hold off-balance sheet leverage that has not been realized due to ASC 842, and tracks these commitments when they reach thresholds of greater than $100B',
   },
   {
     id: 5,
@@ -56,8 +56,7 @@ const FLAGS = [
     title: 'Accounts payable changes that may reflect erosion of core cash flow',
     subtitle: 'payment timing',
     body: [
-      'For publicly traded companies, we can pull the FMP API and track if and when accounts payable (or receivable) abruptly extend.',
-      'We do NOT need to conduct the actual analysis. Ideally this monitoring flag is for investors to ask their corporate credit analysts to examine payment timing, underlying operating performance, and the source of reported cash generation together.',
+      'For publicly traded companies, Compass tracks when accounts payable (or receivable) abruptly extend.',
     ],
   },
 ];
@@ -115,7 +114,7 @@ export default function MultiFlagCreditAlerts({ user, onBack }) {
                 portal. Submitted names are then monitored against the five flags below.
               </p>
               <p className="text-sm text-gray-500 mt-4">
-                This service line is the brainchild of the Case Study of First Brands authored by Prof. Michael Gatto.
+                This service line is based on the Case Study of First Brands which was, in Compass' opinion, detectable had investors enrolled with our Multi-Flag Credit Alert monitoring service.
               </p>
             </div>
           </div>
@@ -157,7 +156,7 @@ export default function MultiFlagCreditAlerts({ user, onBack }) {
                       <div className="mt-4 flex items-start gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <p className="text-sm text-gray-600">
-                          <span className="font-semibold text-gray-700">To discuss: </span>
+                          <span className="font-semibold text-gray-700"> </span>
                           {flag.note}
                         </p>
                       </div>
